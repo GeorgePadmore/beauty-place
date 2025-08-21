@@ -37,6 +37,18 @@ export class ServiceAccount {
   @Column({ name: 'is_deleted', type: 'boolean', default: false })
   isDeleted: boolean;
 
+  @Column({ name: 'is_suspended', type: 'boolean', default: false })
+  isSuspended: boolean;
+
+  @Column({ name: 'suspension_reason', type: 'text', nullable: true })
+  suspensionReason: string;
+
+  @Column({ name: 'last_withdrawal_at', type: 'timestamp', nullable: true })
+  lastWithdrawalAt: Date;
+
+  @Column({ name: 'last_transaction_at', type: 'timestamp', nullable: true })
+  lastTransactionAt: Date;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 

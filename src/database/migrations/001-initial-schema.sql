@@ -106,6 +106,10 @@ CREATE TABLE service_accounts (
   net_balance DECIMAL(15,2) DEFAULT 0.00,
   is_active BOOLEAN DEFAULT TRUE,
   is_deleted BOOLEAN DEFAULT FALSE,
+  is_suspended BOOLEAN DEFAULT FALSE,
+  suspension_reason TEXT,
+  last_withdrawal_at TIMESTAMP,
+  last_transaction_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );

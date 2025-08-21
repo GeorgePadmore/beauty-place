@@ -5,8 +5,10 @@ export { User, UserRole } from '../users/entities/user.entity';
 export {
   Professional,
   TravelMode,
-  ServiceCategory,
 } from '../professionals/entities/professional.entity';
+
+// Common enums
+export { ServiceCategory } from '../common/enums/service-category.enum';
 
 // Service entities
 export { Service } from '../services/entities/service.entity';

@@ -13,6 +13,7 @@ import { User } from '../../users/entities/user.entity';
 import { Service } from '../../services/entities/service.entity';
 import { Availability } from '../../availability/entities/availability.entity';
 import { ServiceAccount } from '../../payments/entities/service-account.entity';
+import { Booking } from '../../bookings/entities/booking.entity';
 
 export enum TravelMode {
   MOBILE = 'mobile',
@@ -20,15 +21,7 @@ export enum TravelMode {
   BOTH = 'both',
 }
 
-export enum ServiceCategory {
-  HAIR = 'hair',
-  NAILS = 'nails',
-  MAKEUP = 'makeup',
-  MASSAGE = 'massage',
-  FACIAL = 'facial',
-  WAXING = 'waxing',
-  OTHER = 'other',
-}
+import { ServiceCategory } from '../../common/enums/service-category.enum';
 
 @Entity('professionals')
 @Index(['latitude', 'longitude'])
@@ -111,6 +104,9 @@ export class Professional {
 
   @OneToOne(() => ServiceAccount, (serviceAccount) => serviceAccount.professional)
   serviceAccount: ServiceAccount;
+
+  @OneToMany(() => Booking, (booking) => booking.professional)
+  professionalBookings: Booking[];
 
   // Helper methods
   get fullAddress(): string {

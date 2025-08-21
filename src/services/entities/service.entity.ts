@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Professional } from '../../professionals/entities/professional.entity';
-import { ServiceCategory } from '../../professionals/entities/professional.entity';
+import { ServiceCategory } from '../../common/enums/service-category.enum';
 
 @Entity('services')
 @Index(['professionalId', 'category'])
