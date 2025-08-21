@@ -30,6 +30,7 @@ async function bootstrap() {
     .addTag('Authentication', 'Login, logout, and profile endpoints')
     .addTag('Users', 'User management endpoints')
     .addTag('Professionals', 'Professional profile management endpoints')
+    .addTag('Services', 'Service management endpoints')
     .addBearerAuth()
     .build();
 
