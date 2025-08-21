@@ -9,6 +9,7 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,18 +18,23 @@ import {
   ApiParam,
   ApiQuery,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UserRole } from './entities/user.entity';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { Public } from '../common/decorators/public.decorator';
+import { ApiResponseHelper, ApiResponse as ApiResponseType } from '../common/helpers/api-response.helper';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Public()
   @Post()
   @ApiOperation({
     summary: 'Create a new user',
@@ -38,7 +44,6 @@ export class UsersController {
   @ApiResponse({
     status: 201,
     description: 'User created successfully',
-    type: UserResponseDto,
   })
   @ApiResponse({
     status: 400,
@@ -48,10 +53,12 @@ export class UsersController {
     status: 409,
     description: 'User with this email already exists',
   })
-  async create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    return this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto): Promise<ApiResponseType<UserResponseDto>> {
+    const user = await this.usersService.create(createUserDto);
+    return ApiResponseHelper.success(user, 'User created successfully', '000');
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({
     summary: 'Get all users',
@@ -66,15 +73,19 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: 'List of users retrieved successfully',
-    type: [UserResponseDto],
   })
-  async findAll(@Query('role') role?: UserRole): Promise<UserResponseDto[]> {
+  @ApiBearerAuth()
+  async findAll(@Query('role') role?: UserRole): Promise<ApiResponseType<UserResponseDto[]>> {
+    let users;
     if (role) {
-      return this.usersService.findByRole(role);
+      users = await this.usersService.findByRole(role);
+    } else {
+      users = await this.usersService.findAll();
     }
-    return this.usersService.findAll();
+    return ApiResponseHelper.success(users, 'Users retrieved successfully', '000');
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({
     summary: 'Get user by ID',
@@ -88,16 +99,18 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: 'User retrieved successfully',
-    type: UserResponseDto,
   })
   @ApiResponse({
     status: 404,
     description: 'User not found',
   })
-  async findOne(@Param('id') id: string): Promise<UserResponseDto> {
-    return this.usersService.findOne(id);
+  @ApiBearerAuth()
+  async findOne(@Param('id') id: string): Promise<ApiResponseType<UserResponseDto>> {
+    const user = await this.usersService.findOne(id);
+    return ApiResponseHelper.success(user, 'User retrieved successfully', '000');
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @ApiOperation({
     summary: 'Update user',
@@ -112,7 +125,6 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: 'User updated successfully',
-    type: UserResponseDto,
   })
   @ApiResponse({
     status: 400,
@@ -126,15 +138,18 @@ export class UsersController {
     status: 409,
     description: 'User with this email already exists',
   })
+  @ApiBearerAuth()
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<UserResponseDto> {
-    return this.usersService.update(id, updateUserDto);
+  ): Promise<ApiResponseType<UserResponseDto>> {
+    const user = await this.usersService.update(id, updateUserDto);
+    return ApiResponseHelper.success(user, 'User updated successfully', '000');
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Delete user',
     description: 'Soft deletes a user (marks as deleted but keeps data)',
@@ -145,17 +160,20 @@ export class UsersController {
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiResponse({
-    status: 204,
+    status: 200,
     description: 'User deleted successfully',
   })
   @ApiResponse({
     status: 404,
     description: 'User not found',
   })
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.usersService.remove(id);
+  @ApiBearerAuth()
+  async remove(@Param('id') id: string): Promise<ApiResponseType<null>> {
+    await this.usersService.remove(id);
+    return ApiResponseHelper.success(null, 'User deleted successfully', '000');
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id/toggle-active')
   @ApiOperation({
     summary: 'Toggle user active status',
@@ -169,13 +187,14 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: 'User active status toggled successfully',
-    type: UserResponseDto,
   })
   @ApiResponse({
     status: 404,
     description: 'User not found',
   })
-  async toggleActive(@Param('id') id: string): Promise<UserResponseDto> {
-    return this.usersService.toggleActive(id);
+  @ApiBearerAuth()
+  async toggleActive(@Param('id') id: string): Promise<ApiResponseType<UserResponseDto>> {
+    const user = await this.usersService.toggleActive(id);
+    return ApiResponseHelper.success(user, 'User active status toggled successfully', '000');
   }
 }

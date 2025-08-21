@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -8,6 +9,9 @@ async function bootstrap() {
 
   // Enable CORS
   app.enableCors();
+
+  // Cookie parser middleware
+  app.use(cookieParser());
 
   // Global validation pipe
   app.useGlobalPipes(
@@ -24,6 +28,7 @@ async function bootstrap() {
     .setDescription('The Beauty Place marketplace API documentation')
     .setVersion('1.0')
     .addTag('Users', 'User management endpoints')
+    .addTag('Authentication', 'Login, logout, and profile endpoints')
     .addBearerAuth()
     .build();
 

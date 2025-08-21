@@ -71,6 +71,57 @@ export class DatabaseSyncService {
 
       await this.dataSource.query(pricingConfigQuery);
       this.logger.log('Pricing configuration seeds completed');
+
+      // Insert user seed data
+      const userSeedQuery = `
+        INSERT INTO users (id, email, password_hash, role, first_name, last_name, phone, is_email_verified, is_active, is_deleted, created_at, updated_at) VALUES
+        (
+          '550e8400-e29b-41d4-a716-446655440001',
+          'john.doe@example.com',
+          '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.s8uG',
+          'client',
+          'John',
+          'Doe',
+          '+1234567890',
+          true,
+          true,
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440002',
+          'jane.smith@example.com',
+          '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.s8uG',
+          'client',
+          'Jane',
+          'Smith',
+          '+1234567891',
+          true,
+          true,
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440004',
+          'sarah.beauty@example.com',
+          '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.s8uG',
+          'professional',
+          'Sarah',
+          'Beauty',
+          '+1234567893',
+          true,
+          true,
+          false,
+          NOW(),
+          NOW()
+        )
+        ON CONFLICT (id) DO NOTHING;
+      `;
+
+      await this.dataSource.query(userSeedQuery);
+      this.logger.log('User seed data completed');
     } catch (error) {
       this.logger.error('Failed to run seeds:', error);
       throw error;
