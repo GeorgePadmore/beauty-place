@@ -47,7 +47,7 @@ export class Availability {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => Professional, (professional) => professional.availability)
+  @ManyToOne(() => Professional, (professional) => professional.availabilities)
   @JoinColumn({ name: 'professionalId' })
   professional: Professional;
 

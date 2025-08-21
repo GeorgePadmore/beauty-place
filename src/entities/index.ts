@@ -4,6 +4,8 @@ export { User, UserRole } from '../users/entities/user.entity';
 // Professional entities
 export {
   Professional,
+  ProfessionalStatus,
+  VerificationStatus,
   TravelMode,
 } from '../professionals/entities/professional.entity';
 

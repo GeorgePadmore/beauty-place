@@ -27,8 +27,9 @@ async function bootstrap() {
     .setTitle('Beauty Place API')
     .setDescription('The Beauty Place marketplace API documentation')
     .setVersion('1.0')
-    .addTag('Users', 'User management endpoints')
     .addTag('Authentication', 'Login, logout, and profile endpoints')
+    .addTag('Users', 'User management endpoints')
+    .addTag('Professionals', 'Professional profile management endpoints')
     .addBearerAuth()
     .build();
 
