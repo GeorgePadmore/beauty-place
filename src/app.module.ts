@@ -7,9 +7,10 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ProfessionalsModule } from './professionals/professionals.module';
 import { ServicesModule } from './services/services.module';
+import { AvailabilityModule } from './availability/availability.module';
 
 @Module({
-  imports: [ConfigModule, DatabaseModule, UsersModule, AuthModule, ProfessionalsModule, ServicesModule],
+  imports: [ConfigModule, DatabaseModule, UsersModule, AuthModule, ProfessionalsModule, ServicesModule, AvailabilityModule],
   controllers: [AppController],
   providers: [AppService],
 })

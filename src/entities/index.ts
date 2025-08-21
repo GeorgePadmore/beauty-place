@@ -16,7 +16,11 @@ export { ServiceCategory } from '../common/enums/service-category.enum';
 export { Service } from '../services/entities/service.entity';
 
 // Availability entities
-export { Availability } from '../availability/entities/availability.entity';
+export { 
+  Availability, 
+  AvailabilityStatus, 
+  DayOfWeek 
+} from '../availability/entities/availability.entity';
 
 // Booking entities
 export { Booking, BookingStatus } from '../bookings/entities/booking.entity';
