@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { AvailabilityService } from '../services/availability.service';
-import { CreateAvailabilityDto, UpdateAvailabilityDto, AvailabilityResponseDto } from '../dto';
+import { CreateAvailabilityDto, UpdateAvailabilityDto } from '../dto';
 import { AvailabilityStatus } from '../entities/availability.entity';
 import { UserRole } from '../../users/entities/user.entity';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
