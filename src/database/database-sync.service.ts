@@ -72,6 +72,90 @@ export class DatabaseSyncService {
       await this.dataSource.query(pricingConfigQuery);
       this.logger.log('Pricing configuration seeds completed');
 
+      // Insert notification template seeds
+      const notificationTemplateQuery = `
+        INSERT INTO notification_templates (
+          id, name, description, type, category, status, subject, content, plain_text_content, 
+          variables, metadata, language, version, is_deleted, created_at, updated_at
+        ) VALUES
+        (
+          '550e8400-e29b-41d4-a716-446655440100',
+          'booking_confirmation',
+          'Email template for booking confirmations',
+          'email',
+          'booking',
+          'active',
+          'Booking Confirmed - {{serviceName}}',
+          '<!DOCTYPE html><html><body><h2>Booking Confirmed!</h2><p>Your booking for <strong>{{serviceName}}</strong> has been confirmed.</p><p><strong>Date:</strong> {{startTimeFormatted}}</p><p><strong>Professional:</strong> {{professionalName}}</p><p><strong>Total:</strong> {{totalPrice}}</p><p>Booking ID: {{bookingId}}</p></body></html>',
+          'Booking Confirmed! Your booking for {{serviceName}} has been confirmed. Date: {{startTimeFormatted}}, Professional: {{professionalName}}, Total: {{totalPrice}}, Booking ID: {{bookingId}}',
+          '["serviceName", "startTimeFormatted", "professionalName", "totalPrice", "bookingId"]',
+          '{"templateType": "email", "category": "booking"}',
+          'en',
+          '1.0',
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440101',
+          'payment_confirmation',
+          'Email template for payment confirmations',
+          'email',
+          'payment',
+          'active',
+          'Payment Confirmed - {{amount}}',
+          '<!DOCTYPE html><html><body><h2>Payment Confirmed!</h2><p>Your payment of <strong>{{amount}}</strong> has been processed successfully.</p><p><strong>Service:</strong> {{serviceName}}</p><p><strong>Transaction ID:</strong> {{transactionId}}</p></body></html>',
+          'Payment Confirmed! Your payment of {{amount}} has been processed successfully. Service: {{serviceName}}, Transaction ID: {{transactionId}}',
+          '["amount", "serviceName", "transactionId"]',
+          '{"templateType": "email", "category": "payment"}',
+          'en',
+          '1.0',
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440102',
+          'appointment_reminder',
+          'SMS template for appointment reminders',
+          'sms',
+          'reminder',
+          'active',
+          'Appointment Reminder',
+          'Reminder: Your {{serviceName}} appointment is tomorrow at {{startTimeFormatted}} with {{professionalName}}. Location: {{location}}',
+          'Reminder: Your {{serviceName}} appointment is tomorrow at {{startTimeFormatted}} with {{professionalName}}. Location: {{location}}',
+          '["serviceName", "startTimeFormatted", "professionalName", "location"]',
+          '{"templateType": "sms", "category": "reminder"}',
+          'en',
+          '1.0',
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440103',
+          'welcome_message',
+          'Welcome message for new users',
+          'email',
+          'system',
+          'active',
+          'Welcome to Beauty Place!',
+          '<!DOCTYPE html><html><body><h2>Welcome to Beauty Place!</h2><p>Hi {{firstName}},</p><p>Welcome to Beauty Place! We\'re excited to have you on board.</p><p>Start exploring our services and book your first appointment today!</p></body></html>',
+          'Welcome to Beauty Place! Hi {{firstName}, Welcome to Beauty Place! We\'re excited to have you on board. Start exploring our services and book your first appointment today!',
+          '["firstName"]',
+          '{"templateType": "email", "category": "system"}',
+          'en',
+          '1.0',
+          false,
+          NOW(),
+          NOW()
+        )
+        ON CONFLICT (id) DO NOTHING;
+      `;
+
+      await this.dataSource.query(notificationTemplateQuery);
+      this.logger.log('Notification template seeds completed');
+
       // Insert user seed data
       const userSeedQuery = `
         INSERT INTO users (id, email, password_hash, role, first_name, last_name, phone, is_email_verified, is_active, is_deleted, created_at, updated_at) VALUES
@@ -111,6 +195,20 @@ export class DatabaseSyncService {
           'Sarah',
           'Beauty',
           '+1234567893',
+          true,
+          true,
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440005',
+          'admin@beautyplace.com',
+          '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.s8uG',
+          'administrator',
+          'Admin',
+          'User',
+          '+1234567899',
           true,
           true,
           false,
