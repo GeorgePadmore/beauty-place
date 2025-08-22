@@ -42,6 +42,7 @@ export enum TravelMode {
 @Index(['status'])
 @Index(['verificationStatus'])
 @Index(['category'])
+@Index(['latitude', 'longitude'])
 export class Professional {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -109,6 +110,12 @@ export class Professional {
     radiusKm: number;
     travelFee: number;
   }>;
+
+  @Column({ name: 'latitude', type: 'decimal', precision: 10, scale: 8, nullable: true })
+  latitude: number;
+
+  @Column({ name: 'longitude', type: 'decimal', precision: 11, scale: 8, nullable: true })
+  longitude: number;
 
   @Column({ name: 'travel_mode', type: 'enum', enum: TravelMode, default: TravelMode.BOTH })
   travelMode: TravelMode;

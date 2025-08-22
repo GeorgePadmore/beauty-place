@@ -240,6 +240,40 @@ export class DatabaseSyncService {
       await this.dataSource.query(professionalSeedQuery);
       this.logger.log('Professional seed data completed');
 
+      // Add latitude and longitude columns to professionals table if they don't exist
+      try {
+        const addLocationColumnsQuery = `
+          ALTER TABLE professionals 
+          ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8),
+          ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
+        `;
+        await this.dataSource.query(addLocationColumnsQuery);
+        this.logger.log('Location columns added to professionals table');
+
+        // Update existing professionals with sample coordinates
+        const updateLocationQuery = `
+          UPDATE professionals 
+          SET 
+            latitude = CASE 
+              WHEN business_name = 'Sarah Beauty Studio' THEN 40.7589
+              WHEN business_name = 'Mike Stylist Mobile' THEN 34.0522
+              WHEN business_name = 'Lisa Massage Therapy' THEN 41.8781
+              ELSE NULL
+            END,
+            longitude = CASE 
+              WHEN business_name = 'Sarah Beauty Studio' THEN -73.9851
+              WHEN business_name = 'Mike Stylist Mobile' THEN -118.2437
+              WHEN business_name = 'Lisa Massage Therapy' THEN -87.6298
+              ELSE NULL
+            END
+          WHERE latitude IS NULL OR longitude IS NULL;
+        `;
+        await this.dataSource.query(updateLocationQuery);
+        this.logger.log('Sample coordinates added to existing professionals');
+      } catch (error) {
+        this.logger.warn('Could not add location columns (they may already exist):', error.message);
+      }
+
       // Insert service seed data
       const serviceSeedQuery = `
         INSERT INTO services (

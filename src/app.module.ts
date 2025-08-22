@@ -12,6 +12,7 @@ import { ServicesModule } from './services/services.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { PaymentsModule } from './payments/payments.module';
+import { SearchModule } from './search/search.module';
 import { rateLimitConfig } from './common/config/rate-limit.config';
 
 @Module({
@@ -25,7 +26,8 @@ import { rateLimitConfig } from './common/config/rate-limit.config';
     ServicesModule, 
     AvailabilityModule, 
     BookingsModule, 
-    PaymentsModule
+    PaymentsModule,
+    SearchModule
   ],
   controllers: [AppController],
   providers: [
