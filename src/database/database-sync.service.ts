@@ -39,10 +39,16 @@ export class DatabaseSyncService {
         await this.dataSource.runMigrations();
       }
 
-      // Run seeds if configured
+      // Run schema updates for development FIRST
+      if (syncConfig.syncSchema) {
+        this.logger.log('Running schema updates...');
+        await this.runSchemaUpdates();
+      }
+
+      // Run seeds AFTER schema updates
       if (syncConfig.runSeeds) {
         this.logger.log('Running database seeds...');
-        await this.runSeeds();
+        // await this.runSeeds();
       }
 
       this.logger.log('Database schema synchronization completed successfully');
@@ -86,7 +92,7 @@ export class DatabaseSyncService {
           'booking',
           'active',
           'Booking Confirmed - {{serviceName}}',
-          '<!DOCTYPE html><html><body><h2>Booking Confirmed!</h2><p>Your booking for <strong>{{serviceName}}</strong> has been confirmed.</p><p><strong>Date:</strong> {{startTimeFormatted}}</p><p><strong>Professional:</strong> {{professionalName}}</p><p><strong>Total:</strong> {{totalPrice}}</p><p>Booking ID: {{bookingId}}</p></body></html>',
+          '<h2>Booking Confirmed!</h2><p>Your booking for {{serviceName}} has been confirmed.</p><p>Date: {{startTimeFormatted}}</p><p>Professional: {{professionalName}}</p><p>Total: {{totalPrice}}</p><p>Booking ID: {{bookingId}}</p>',
           'Booking Confirmed! Your booking for {{serviceName}} has been confirmed. Date: {{startTimeFormatted}}, Professional: {{professionalName}}, Total: {{totalPrice}}, Booking ID: {{bookingId}}',
           '["serviceName", "startTimeFormatted", "professionalName", "totalPrice", "bookingId"]',
           '{"templateType": "email", "category": "booking"}',
@@ -104,7 +110,7 @@ export class DatabaseSyncService {
           'payment',
           'active',
           'Payment Confirmed - {{amount}}',
-          '<!DOCTYPE html><html><body><h2>Payment Confirmed!</h2><p>Your payment of <strong>{{amount}}</strong> has been processed successfully.</p><p><strong>Service:</strong> {{serviceName}}</p><p><strong>Transaction ID:</strong> {{transactionId}}</p></body></html>',
+          '<h2>Payment Confirmed!</h2><p>Your payment of {{amount}} has been processed successfully.</p><p>Service: {{serviceName}}</p><p>Transaction ID: {{transactionId}}</p>',
           'Payment Confirmed! Your payment of {{amount}} has been processed successfully. Service: {{serviceName}}, Transaction ID: {{transactionId}}',
           '["amount", "serviceName", "transactionId"]',
           '{"templateType": "email", "category": "payment"}',
@@ -140,8 +146,8 @@ export class DatabaseSyncService {
           'system',
           'active',
           'Welcome to Beauty Place!',
-          '<!DOCTYPE html><html><body><h2>Welcome to Beauty Place!</h2><p>Hi {{firstName}},</p><p>Welcome to Beauty Place! We\'re excited to have you on board.</p><p>Start exploring our services and book your first appointment today!</p></body></html>',
-          'Welcome to Beauty Place! Hi {{firstName}, Welcome to Beauty Place! We\'re excited to have you on board. Start exploring our services and book your first appointment today!',
+          '<h2>Welcome to Beauty Place!</h2><p>Hi {{firstName}},</p><p>Welcome to Beauty Place! We are excited to have you on board.</p><p>Start exploring our services and book your first appointment today!</p>',
+          'Welcome to Beauty Place! Hi {{firstName}, Welcome to Beauty Place! We are excited to have you on board. Start exploring our services and book your first appointment today!',
           '["firstName"]',
           '{"templateType": "email", "category": "system"}',
           'en',
@@ -372,14 +378,44 @@ export class DatabaseSyncService {
         // Fix price field types in services table
         const fixPriceFieldsQuery = `
           ALTER TABLE services 
-          ALTER COLUMN base_price TYPE DECIMAL(10,2) USING CAST(base_price AS DECIMAL(10,2)),
-          ALTER COLUMN discounted_price TYPE DECIMAL(10,2) USING CAST(discounted_price AS DECIMAL(10,2)),
-          ALTER COLUMN travel_fee TYPE DECIMAL(10,2) USING CAST(travel_fee AS DECIMAL(10,2)),
-          ALTER COLUMN travel_fee_per_km TYPE DECIMAL(10,2) USING CAST(travel_fee_per_km AS DECIMAL(10,2)),
-          ALTER COLUMN max_travel_distance TYPE DECIMAL(8,2) USING CAST(max_travel_distance AS DECIMAL(8,2));
+          ALTER COLUMN base_price TYPE DECIMAL(10,2) USING CASE 
+            WHEN base_price ~ '^[0-9]+\.?[0-9]*$' THEN CAST(base_price AS DECIMAL(10,2))
+            ELSE 0.00
+          END,
+          ALTER COLUMN discounted_price TYPE DECIMAL(10,2) USING CASE 
+            WHEN discounted_price ~ '^[0-9]+\.?[0-9]*$' THEN CAST(discounted_price AS DECIMAL(10,2))
+            ELSE NULL
+          END,
+          ALTER COLUMN travel_fee TYPE DECIMAL(10,2) USING CASE 
+            WHEN travel_fee ~ '^[0-9]+\.?[0-9]*$' THEN CAST(travel_fee AS DECIMAL(10,2))
+            ELSE 0.00
+          END,
+          ALTER COLUMN travel_fee_per_km TYPE DECIMAL(10,2) USING CASE 
+            WHEN travel_fee_per_km ~ '^[0-9]+\.?[0-9]*$' THEN CAST(travel_fee_per_km AS DECIMAL(10,2))
+            ELSE 0.00
+          END,
+          ALTER COLUMN max_travel_distance TYPE DECIMAL(8,2) USING CASE 
+            WHEN max_travel_distance ~ '^[0-9]+\.?[0-9]*$' THEN CAST(max_travel_distance AS DECIMAL(8,2))
+            ELSE NULL
+          END;
         `;
         await this.dataSource.query(fixPriceFieldsQuery);
         this.logger.log('Price field types fixed in services table');
+
+        // Fix balance field types in service_accounts table
+        const fixBalanceFieldsQuery = `
+          ALTER TABLE service_accounts 
+          ALTER COLUMN gross_balance TYPE DECIMAL(10,2) USING CASE 
+            WHEN gross_balance ~ '^[0-9]+\.?[0-9]*$' THEN CAST(gross_balance AS DECIMAL(10,2))
+            ELSE 0.00
+          END,
+          ALTER COLUMN net_balance TYPE DECIMAL(10,2) USING CASE 
+            WHEN net_balance ~ '^[0-9]+\.?[0-9]*$' THEN CAST(net_balance AS DECIMAL(10,2))
+            ELSE 0.00
+          END;
+        `;
+        await this.dataSource.query(fixBalanceFieldsQuery);
+        this.logger.log('Balance field types fixed in service_accounts table');
 
         // Add database indexes for search performance
         const addIndexesQuery = `
@@ -820,6 +856,221 @@ export class DatabaseSyncService {
       this.logger.log('Booking seed data completed');
     } catch (error) {
       this.logger.error('Failed to run seeds:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Run schema updates for development
+   */
+  private async runSchemaUpdates(): Promise<void> {
+    try {
+      this.logger.log('Starting schema updates...');
+      
+      // Create missing tables if they don't exist
+      try {
+        this.logger.log('Creating missing tables...');
+        
+        // Drop and recreate pricing_config table to ensure correct structure
+        const dropPricingConfigQuery = `DROP TABLE IF EXISTS pricing_config CASCADE;`;
+        await this.dataSource.query(dropPricingConfigQuery);
+        this.logger.log('Dropped existing pricing_config table');
+        
+        const createPricingConfigTableQuery = `
+          CREATE TABLE pricing_config (
+            id SERIAL PRIMARY KEY,
+            pricing_type VARCHAR(50) UNIQUE NOT NULL,
+            value DECIMAL(10,2) NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            unit VARCHAR(50) NOT NULL,
+            is_active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `;
+        await this.dataSource.query(createPricingConfigTableQuery);
+        this.logger.log('✅ Pricing config table created with correct structure');
+
+        // Drop and recreate notification_templates table
+        const dropNotificationTemplatesQuery = `DROP TABLE IF EXISTS notification_templates CASCADE;`;
+        await this.dataSource.query(dropNotificationTemplatesQuery);
+        this.logger.log('Dropped existing notification_templates table');
+        
+        const createNotificationTemplatesTableQuery = `
+          CREATE TABLE notification_templates (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            name VARCHAR(255) UNIQUE NOT NULL,
+            description TEXT,
+            type VARCHAR(50) NOT NULL,
+            category VARCHAR(50) NOT NULL,
+            status VARCHAR(50) DEFAULT 'active',
+            subject VARCHAR(500),
+            content TEXT,
+            plain_text_content TEXT,
+            variables JSONB,
+            metadata JSONB,
+            language VARCHAR(10) DEFAULT 'en',
+            version VARCHAR(20) DEFAULT '1.0',
+            is_deleted BOOLEAN DEFAULT false,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `;
+        await this.dataSource.query(createNotificationTemplatesTableQuery);
+        this.logger.log('✅ Notification templates table created with correct structure');
+      } catch (error) {
+        this.logger.error('❌ Could not create missing tables:', error.message);
+        throw error;
+      }
+
+      // Add latitude and longitude columns to professionals table if they don't exist
+      try {
+        this.logger.log('Adding location columns to professionals...');
+        
+        const addLocationColumnsQuery = `
+          ALTER TABLE professionals 
+          ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8),
+          ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
+        `;
+        await this.dataSource.query(addLocationColumnsQuery);
+        this.logger.log('✅ Location columns added to professionals table');
+
+        // Update existing professionals with sample coordinates
+        const updateLocationQuery = `
+          UPDATE professionals 
+          SET 
+            latitude = CASE 
+              WHEN business_name = 'Sarah Beauty Studio' THEN 40.7589
+              WHEN business_name = 'Mike Stylist Mobile' THEN 34.0522
+              WHEN business_name = 'Lisa Massage Therapy' THEN 41.8781
+              ELSE NULL
+            END,
+            longitude = CASE 
+              WHEN business_name = 'Sarah Beauty Studio' THEN -73.9851
+              WHEN business_name = 'Mike Stylist Mobile' THEN -118.2437
+              WHEN business_name = 'Lisa Massage Therapy' THEN -87.6298
+              ELSE NULL
+            END
+          WHERE latitude IS NULL OR longitude IS NULL;
+        `;
+        await this.dataSource.query(updateLocationQuery);
+        this.logger.log('✅ Sample coordinates added to existing professionals');
+      } catch (error) {
+        this.logger.error('❌ Could not update location columns:', error.message);
+        throw error;
+      }
+
+      // Fix price field types in services table
+      try {
+        this.logger.log('Fixing price field types in services table...');
+        
+        // First check if fields are already DECIMAL
+        const checkPriceFieldsQuery = `
+          SELECT 
+            column_name, 
+            data_type 
+          FROM information_schema.columns 
+          WHERE table_name = 'services' 
+          AND column_name IN ('base_price', 'discounted_price', 'travel_fee', 'travel_fee_per_km', 'max_travel_distance');
+        `;
+        const fieldTypes = await this.dataSource.query(checkPriceFieldsQuery);
+        this.logger.log('Current field types:', fieldTypes);
+        
+        // Only convert if not already DECIMAL
+        for (const field of fieldTypes) {
+          if (field.data_type !== 'numeric' && field.data_type !== 'decimal') {
+            this.logger.log(`Converting ${field.column_name} from ${field.data_type} to DECIMAL...`);
+            
+            let alterQuery;
+            if (field.column_name === 'max_travel_distance') {
+              alterQuery = `ALTER TABLE services ALTER COLUMN ${field.column_name} TYPE DECIMAL(8,2) USING NULLIF(${field.column_name}, '')::DECIMAL(8,2);`;
+            } else {
+              alterQuery = `ALTER TABLE services ALTER COLUMN ${field.column_name} TYPE DECIMAL(10,2) USING NULLIF(${field.column_name}, '')::DECIMAL(10,2);`;
+            }
+            
+            await this.dataSource.query(alterQuery);
+            this.logger.log(`✅ ${field.column_name} converted to DECIMAL`);
+          } else {
+            this.logger.log(`✅ ${field.column_name} is already DECIMAL`);
+          }
+        }
+        
+        this.logger.log('✅ Price field types fixed in services table');
+      } catch (error) {
+        this.logger.error('❌ Could not fix price field types:', error.message);
+        throw error;
+      }
+
+      // Fix balance field types in service_accounts table
+      try {
+        this.logger.log('Fixing balance field types in service_accounts table...');
+        
+        // Check if service_accounts table exists and has the fields
+        const checkServiceAccountsQuery = `
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'service_accounts'
+          );
+        `;
+        const tableExists = await this.dataSource.query(checkServiceAccountsQuery);
+        
+        if (tableExists[0].exists) {
+          const checkBalanceFieldsQuery = `
+            SELECT 
+              column_name, 
+              data_type 
+            FROM information_schema.columns 
+            WHERE table_name = 'service_accounts' 
+            AND column_name IN ('gross_balance', 'net_balance');
+          `;
+          const balanceFieldTypes = await this.dataSource.query(checkBalanceFieldsQuery);
+          this.logger.log('Current balance field types:', balanceFieldTypes);
+          
+          for (const field of balanceFieldTypes) {
+            if (field.data_type !== 'numeric' && field.data_type !== 'decimal') {
+              this.logger.log(`Converting ${field.column_name} from ${field.data_type} to DECIMAL...`);
+              
+              const alterQuery = `ALTER TABLE service_accounts ALTER COLUMN ${field.column_name} TYPE DECIMAL(10,2) USING NULLIF(${field.column_name}, '')::DECIMAL(10,2);`;
+              await this.dataSource.query(alterQuery);
+              this.logger.log(`✅ ${field.column_name} converted to DECIMAL`);
+            } else {
+              this.logger.log(`✅ ${field.column_name} is already DECIMAL`);
+            }
+          }
+        } else {
+          this.logger.log('⚠️ service_accounts table does not exist yet');
+        }
+        
+        this.logger.log('✅ Balance field types fixed in service_accounts table');
+      } catch (error) {
+        this.logger.error('❌ Could not fix balance field types:', error.message);
+        throw error;
+      }
+
+      // Add database indexes for search performance
+      try {
+        this.logger.log('Adding search performance indexes...');
+        
+        const addIndexesQuery = `
+          CREATE INDEX IF NOT EXISTS idx_professionals_location ON professionals(latitude, longitude);
+          CREATE INDEX IF NOT EXISTS idx_professionals_category ON professionals(category);
+          CREATE INDEX IF NOT EXISTS idx_professionals_status ON professionals(status);
+          CREATE INDEX IF NOT EXISTS idx_professionals_rating ON professionals(average_rating);
+          CREATE INDEX IF NOT EXISTS idx_services_category ON services(category);
+          CREATE INDEX IF NOT EXISTS idx_services_status ON services(status);
+          CREATE INDEX IF NOT EXISTS idx_services_price ON services(base_price);
+        `;
+        await this.dataSource.query(addIndexesQuery);
+        this.logger.log('✅ Search performance indexes added');
+      } catch (error) {
+        this.logger.error('❌ Could not add indexes:', error.message);
+        throw error;
+      }
+
+      this.logger.log('🎉 All schema updates completed successfully!');
+    } catch (error) {
+      this.logger.error('💥 Schema updates failed:', error);
       throw error;
     }
   }

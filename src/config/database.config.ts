@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 
@@ -10,8 +11,8 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
     type: 'postgres',
     url: configService.get<string>('DATABASE_URL'),
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-    synchronize: syncConfig.syncSchema, // Auto-sync in development
-    dropSchema: syncConfig.dropSchema, // Drop schema if needed
+    synchronize: false, // Disable auto-sync to prevent conflicts with manual schema updates
+    dropSchema: false, // Never drop schema automatically
     logging: configService.get<string>('NODE_ENV') === 'development',
     ssl: configService.get<string>('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
     migrations: syncConfig.runMigrations ? [__dirname + '/../database/migrations/*.sql'] : [],
