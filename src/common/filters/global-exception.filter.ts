@@ -45,7 +45,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     // Clean up error message for user consumption
-    const userMessage = this.cleanErrorMessage(message);
+    const userMessage = this.cleanErrorMessage(message || 'An unexpected error occurred');
     
     // Log the error appropriately based on type
     if (isOperational) {
@@ -85,6 +85,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
    * Removes technical details and makes messages more user-friendly
    */
   private cleanErrorMessage(message: string): string {
+    // Handle null/undefined messages
+    if (!message || typeof message !== 'string') {
+      return 'An unexpected error occurred.';
+    }
+
     // Common error message cleanups
     const cleanups = [
       // Remove technical prefixes
@@ -118,10 +123,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     // Ensure message starts with capital letter and ends properly
-    cleanedMessage = cleanedMessage.charAt(0).toUpperCase() + cleanedMessage.slice(1);
-    
-    if (!cleanedMessage.endsWith('.') && !cleanedMessage.endsWith('!') && !cleanedMessage.endsWith('?')) {
-      cleanedMessage += '.';
+    if (cleanedMessage.length > 0) {
+      cleanedMessage = cleanedMessage.charAt(0).toUpperCase() + cleanedMessage.slice(1);
+      
+      if (!cleanedMessage.endsWith('.') && !cleanedMessage.endsWith('!') && !cleanedMessage.endsWith('?')) {
+        cleanedMessage += '.';
+      }
     }
 
     return cleanedMessage;

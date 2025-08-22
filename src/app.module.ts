@@ -9,9 +9,10 @@ import { ProfessionalsModule } from './professionals/professionals.module';
 import { ServicesModule } from './services/services.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { BookingsModule } from './bookings/bookings.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
-  imports: [ConfigModule, DatabaseModule, UsersModule, AuthModule, ProfessionalsModule, ServicesModule, AvailabilityModule, BookingsModule],
+  imports: [ConfigModule, DatabaseModule, UsersModule, AuthModule, ProfessionalsModule, ServicesModule, AvailabilityModule, BookingsModule, PaymentsModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -43,7 +44,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  // eslint-disable-next-line no-undef
   const port = process.env.PORT || 3000;
   await app.listen(port);
   

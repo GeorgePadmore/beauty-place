@@ -36,7 +36,10 @@ export class WebhookEvent {
   status: WebhookEventStatus;
 
   @Column({ type: 'jsonb', nullable: false })
-  payload: Record<string, any>;
+  eventData: Record<string, any>;
+
+  @Column({ type: 'jsonb', nullable: true })
+  metadata: Record<string, any>;
 
   @Column({ name: 'processed_at', type: 'timestamp', nullable: true })
   processedAt: Date;
@@ -46,6 +49,9 @@ export class WebhookEvent {
 
   @Column({ name: 'retry_count', type: 'integer', default: 0 })
   retryCount: number;
+
+  @Column({ name: 'last_retry_at', type: 'timestamp', nullable: true })
+  lastRetryAt: Date;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
