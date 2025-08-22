@@ -8,6 +8,7 @@ import { Service } from '../../services/entities/service.entity';
 import { Availability, AvailabilityStatus } from '../../availability/entities/availability.entity';
 import { CreateBookingDto, UpdateBookingDto, BookingResponseDto } from '../dto';
 import { v4 as uuidv4 } from 'uuid';
+import { LoggerService } from '../../common/services/logger.service';
 
 @Injectable()
 export class BookingsService {
@@ -22,43 +23,75 @@ export class BookingsService {
     private serviceRepository: Repository<Service>,
     @InjectRepository(Availability)
     private availabilityRepository: Repository<Availability>,
+    private readonly logger: LoggerService,
   ) {}
 
   async create(createBookingDto: CreateBookingDto, clientId: string): Promise<BookingResponseDto> {
-    // Validate entities exist
-    const [client, professional, service] = await Promise.all([
-      this.userRepository.findOne({ where: { id: clientId, isDeleted: false } }),
-      this.professionalRepository.findOne({ where: { id: createBookingDto.professionalId, isDeleted: false } }),
-      this.serviceRepository.findOne({ where: { id: createBookingDto.serviceId, isDeleted: false } })
-    ]);
-
-    if (!client) throw new NotFoundException('Client not found');
-    if (!professional) throw new NotFoundException('Professional not found');
-    if (!service) throw new NotFoundException('Service not found');
-
-    // Validate service belongs to professional
-    if (service.professionalId !== createBookingDto.professionalId) {
-      throw new BadRequestException('Service does not belong to the specified professional');
+    this.logger.debug('1. Starting booking creation...', 'BookingsService');
+    
+    // Validate client exists
+    const client = await this.userRepository.findOne({ where: { id: clientId, isDeleted: false } });
+    if (!client) {
+      this.logger.error('Client not found', undefined, 'BookingsService');
+      throw new NotFoundException('Client not found');
     }
+    this.logger.success(`2. Client validated: ${client.id}`, 'BookingsService');
 
-    // Check for double-booking
-    await this.checkDoubleBooking(createBookingDto.professionalId, createBookingDto.startTime, createBookingDto.endTime || this.calculateEndTime(createBookingDto.startTime, service.durationMinutes));
+    // Validate professional exists
+    const professional = await this.professionalRepository.findOne({ where: { id: createBookingDto.professionalId, isDeleted: false } });
+    if (!professional) {
+      this.logger.error('Professional not found', undefined, 'BookingsService');
+      throw new NotFoundException('Professional not found');
+    }
+    this.logger.success(`3. Professional validated: ${professional.id}`, 'BookingsService');
+
+    // Validate service exists and belongs to professional
+    const service = await this.serviceRepository.findOne({ where: { id: createBookingDto.serviceId, isDeleted: false } });
+    if (!service || service.professionalId !== createBookingDto.professionalId) {
+      this.logger.error('Service validation failed', undefined, 'BookingsService');
+      throw new NotFoundException('Service not found or does not belong to the specified professional');
+    }
+    this.logger.success(`4. Service validated: ${service.id}`, 'BookingsService');
+
+    // Convert dates
+    const startTime = new Date(createBookingDto.startTime);
+    const endTime = createBookingDto.endTime ? new Date(createBookingDto.endTime) : this.calculateEndTime(startTime, service.durationMinutes);
+    this.logger.debug(`5. Dates converted: ${startTime} - ${endTime}`, 'BookingsService');
+
+    // Check double booking
+    this.logger.debug('6. Checking double booking...', 'BookingsService');
+    await this.checkDoubleBooking(createBookingDto.professionalId, startTime, endTime);
+    this.logger.success('7. Double booking check passed', 'BookingsService');
 
     // Check availability
-    await this.checkAvailability(createBookingDto.professionalId, createBookingDto.startTime, service.durationMinutes);
+    this.logger.debug('8. Checking availability...', 'BookingsService');
+    await this.checkAvailability(createBookingDto.professionalId, startTime, service.durationMinutes);
+    this.logger.success('9. Availability check passed', 'BookingsService');
 
-    // Calculate end time if not provided
-    const endTime = createBookingDto.endTime || this.calculateEndTime(createBookingDto.startTime, service.durationMinutes);
+    // Check advance booking hours
+    this.logger.debug('10. Checking advance booking hours...', 'BookingsService');
+    const advanceBookingHours = 24; // 24 hours in advance
+    const now = new Date();
+    const minBookingTime = new Date(now.getTime() + advanceBookingHours * 60 * 60 * 1000);
+    
+    if (startTime < minBookingTime) {
+      this.logger.error('Advance booking hours not met', undefined, 'BookingsService');
+      throw new BadRequestException(`Bookings must be made at least ${advanceBookingHours} hours in advance`);
+    }
+    this.logger.success('11. Advance booking hours check passed', 'BookingsService');
 
     // Calculate pricing
+    this.logger.debug('12. Calculating pricing...', 'BookingsService');
     const { servicePrice, travelFee, platformFee, totalPrice } = await this.calculatePricing(
       service,
       professional,
       createBookingDto.bookingType || BookingType.IN_PERSON,
       createBookingDto.location
     );
+    this.logger.debug(`13. Pricing calculated: ${servicePrice}, ${travelFee}, ${platformFee}, ${totalPrice}`, 'BookingsService');
 
     // Create booking
+    this.logger.debug('14. Creating booking object...', 'BookingsService');
     const booking = this.bookingRepository.create({
       ...createBookingDto,
       clientId,
@@ -72,13 +105,25 @@ export class BookingsService {
       status: BookingStatus.PENDING,
       paymentStatus: PaymentStatus.PENDING,
     });
+    this.logger.success(`15. Booking object created: ${booking.id}`, 'BookingsService');
 
+    // Save booking to database
+    this.logger.debug('16. Saving booking to database...', 'BookingsService');
     const savedBooking = await this.bookingRepository.save(booking);
+    this.logger.success(`17. Booking saved to database: ${savedBooking.id}`, 'BookingsService');
 
-    // Update availability current bookings count
-    await this.updateAvailabilityBookings(createBookingDto.professionalId, createBookingDto.startTime, 1);
+    // Update availability bookings count
+    this.logger.debug('18. Updating availability bookings count...', 'BookingsService');
+    await this.updateAvailabilityBookings(createBookingDto.professionalId, startTime, 1);
+    this.logger.success('19. Availability updated', 'BookingsService');
 
-    return this.mapToResponseDto(savedBooking, client, professional, service);
+    // Map to response DTO
+    this.logger.debug('20. Mapping to response DTO...', 'BookingsService');
+    const response = this.mapToResponseDto(savedBooking, client, professional, service);
+    this.logger.success('21. Response mapped successfully', 'BookingsService');
+
+    this.logger.success('22. Booking creation completed successfully!', 'BookingsService');
+    return response;
   }
 
   async findAll(): Promise<BookingResponseDto[]> {
@@ -191,8 +236,9 @@ export class BookingsService {
 
     // Validate time changes if updating start time
     if (updateBookingDto.startTime) {
-      await this.checkDoubleBooking(booking.professionalId, updateBookingDto.startTime, updateBookingDto.endTime || booking.endTime, id);
-      await this.checkAvailability(booking.professionalId, updateBookingDto.startTime, booking.service.durationMinutes);
+      const newStartTime = new Date(updateBookingDto.startTime);
+      await this.checkDoubleBooking(booking.professionalId, newStartTime, updateBookingDto.endTime ? new Date(updateBookingDto.endTime) : booking.endTime, id);
+      await this.checkAvailability(booking.professionalId, newStartTime, booking.service.durationMinutes);
     }
 
     // Update booking
@@ -200,7 +246,8 @@ export class BookingsService {
     
     // Recalculate end time if start time changed
     if (updateBookingDto.startTime && !updateBookingDto.endTime) {
-      booking.endTime = this.calculateEndTime(updateBookingDto.startTime, booking.service.durationMinutes);
+      const newStartTime = new Date(updateBookingDto.startTime);
+      booking.endTime = this.calculateEndTime(newStartTime, booking.service.durationMinutes);
     }
 
     // Recalculate pricing if needed
@@ -454,13 +501,14 @@ export class BookingsService {
     platformFee: number;
     totalPrice: number;
   }> {
-    let servicePrice = service.discountedPrice || service.basePrice;
+    // Ensure all values are numbers
+    let servicePrice = Number(service.discountedPrice || service.basePrice);
     let travelFee = 0;
 
     // Calculate travel fee for home visits
     if (bookingType === BookingType.HOME_VISIT && location) {
       // This is a simplified calculation - in production you'd use a real distance API
-      travelFee = professional.baseTravelFee || 0;
+      travelFee = Number(professional.baseTravelFee || 0);
     }
 
     // Calculate platform fee (simplified - in production you'd get this from PricingConfig)
@@ -547,69 +595,93 @@ export class BookingsService {
   }
 
   private mapToResponseDto(booking: Booking, client: User, professional: Professional, service: Service): BookingResponseDto {
-    return {
-      id: booking.id,
-      clientId: booking.clientId,
-      professionalId: booking.professionalId,
-      serviceId: booking.serviceId,
-      startTime: booking.startTime,
-      endTime: booking.endTime,
-      totalPrice: booking.totalPrice,
-      servicePrice: booking.servicePrice,
-      travelFee: booking.travelFee,
-      platformFee: booking.platformFee,
-      discount: booking.discount,
-      status: booking.status,
-      paymentStatus: booking.paymentStatus,
-      bookingType: booking.bookingType,
-      stripePaymentIntentId: booking.stripePaymentIntentId,
-      idempotencyKey: booking.idempotencyKey,
-      location: booking.location,
-      clientNotes: booking.clientNotes,
-      professionalNotes: booking.professionalNotes,
-      cancellationReason: booking.cancellationReason,
-      cancelledBy: booking.cancelledBy,
-      cancelledAt: booking.cancelledAt,
-      confirmationSentAt: booking.confirmationSentAt,
-      reminderSentAt: booking.reminderSentAt,
-      completedAt: booking.completedAt,
-      rating: booking.rating,
-      review: booking.review,
-      reviewedAt: booking.reviewedAt,
-      rescheduledFrom: booking.rescheduledFrom,
-      rescheduledTo: booking.rescheduledTo,
-      rescheduledAt: booking.rescheduledAt,
-      rescheduledBy: booking.rescheduledBy,
-      durationMinutes: booking.durationMinutes,
-      durationHours: booking.durationHours,
-      isActive: booking.isActive,
-      createdAt: booking.createdAt,
-      updatedAt: booking.updatedAt,
-      isConfirmed: booking.isConfirmed(),
-      isPending: booking.isPending(),
-      isCancelled: booking.isCancelled(),
-      isCompleted: booking.isCompleted(),
-      isRescheduled: booking.isRescheduled(),
-      isNoShow: booking.isNoShow(),
-      canBeCancelled: booking.canBeCancelled(),
-      canBeRescheduled: booking.canBeRescheduled(),
-      canBeCompleted: booking.canBeCompleted(),
-      isPaid: booking.isPaid(),
-      isPaymentPending: booking.isPaymentPending(),
-      isPaymentFailed: booking.isPaymentFailed(),
-      hasRefund: booking.hasRefund(),
-      isUpcoming: booking.isUpcoming(),
-      isPast: booking.isPast(),
-      isToday: booking.isToday(),
-      timeUntilStart: booking.getTimeUntilStart(),
-      timeUntilStartMinutes: booking.getTimeUntilStartMinutes(),
-      timeUntilStartHours: booking.getTimeUntilStartHours(),
-      clientEmail: client.email,
-      clientFullName: `${client.firstName} ${client.lastName}`,
-      professionalBusinessName: professional.businessName,
-      professionalTitle: professional.professionalTitle,
-      serviceName: service.serviceName,
-      serviceCategory: service.category,
-    };
+    this.logger.debug('mapToResponseDto - Starting...', 'BookingsService');
+    this.logger.debug(`mapToResponseDto - booking object: ${booking?.id}, startTime: ${typeof booking?.startTime}, endTime: ${typeof booking?.endTime}`, 'BookingsService');
+    this.logger.debug(`mapToResponseDto - client: ${client?.id}, professional: ${professional?.id}, service: ${service?.id}`, 'BookingsService');
+
+    try {
+      this.logger.debug('mapToResponseDto - Creating response object...', 'BookingsService');
+      
+      // Ensure startTime and endTime are Date objects on the booking object
+      if (!(booking.startTime instanceof Date)) {
+        booking.startTime = new Date(booking.startTime);
+      }
+      if (!(booking.endTime instanceof Date)) {
+        booking.endTime = new Date(booking.endTime);
+      }
+      
+      this.logger.debug(`mapToResponseDto - Date conversion: startTime=${typeof booking.startTime}, endTime=${typeof booking.endTime}`, 'BookingsService');
+      
+      const response = {
+        id: booking.id,
+        clientId: booking.clientId,
+        professionalId: booking.professionalId,
+        serviceId: booking.serviceId,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        totalPrice: booking.totalPrice,
+        servicePrice: booking.servicePrice,
+        travelFee: booking.travelFee,
+        platformFee: booking.platformFee,
+        discount: booking.discount,
+        status: booking.status,
+        paymentStatus: booking.paymentStatus,
+        bookingType: booking.bookingType,
+        stripePaymentIntentId: booking.stripePaymentIntentId,
+        idempotencyKey: booking.idempotencyKey,
+        location: booking.location,
+        clientNotes: booking.clientNotes,
+        professionalNotes: booking.professionalNotes,
+        cancellationReason: booking.cancellationReason,
+        cancelledBy: booking.cancelledBy,
+        cancelledAt: booking.cancelledAt,
+        confirmationSentAt: booking.confirmationSentAt,
+        reminderSentAt: booking.reminderSentAt,
+        completedAt: booking.completedAt,
+        rating: booking.rating,
+        review: booking.review,
+        reviewedAt: booking.reviewedAt,
+        rescheduledFrom: booking.rescheduledFrom,
+        rescheduledTo: booking.rescheduledTo,
+        rescheduledAt: booking.rescheduledAt,
+        rescheduledBy: booking.rescheduledBy,
+        durationMinutes: booking.durationMinutes,
+        durationHours: booking.durationHours,
+        isActive: booking.isActive,
+        createdAt: booking.createdAt,
+        updatedAt: booking.updatedAt,
+        isConfirmed: booking.isConfirmed(),
+        isPending: booking.isPending(),
+        isCancelled: booking.isCancelled(),
+        isCompleted: booking.isCompleted(),
+        isRescheduled: booking.isRescheduled(),
+        isNoShow: booking.isNoShow(),
+        canBeCancelled: booking.canBeCancelled(),
+        canBeRescheduled: booking.canBeRescheduled(),
+        canBeCompleted: booking.canBeCompleted(),
+        isPaid: booking.isPaid(),
+        isPaymentPending: booking.isPaymentPending(),
+        isPaymentFailed: booking.isPaymentFailed(),
+        hasRefund: booking.hasRefund(),
+        isUpcoming: booking.isUpcoming(),
+        isPast: booking.isPast(),
+        isToday: booking.isToday(),
+        timeUntilStart: booking.getTimeUntilStart(),
+        timeUntilStartMinutes: booking.getTimeUntilStartMinutes(),
+        timeUntilStartHours: booking.getTimeUntilStartHours(),
+        clientEmail: client.email,
+        clientFullName: `${client.firstName} ${client.lastName}`,
+        professionalBusinessName: professional.businessName,
+        professionalTitle: professional.professionalTitle,
+        serviceName: service.serviceName,
+        serviceCategory: service.category,
+      };
+
+      this.logger.success('mapToResponseDto - Response object created successfully', 'BookingsService');
+      return response;
+    } catch (error) {
+      this.logger.error('mapToResponseDto - Error occurred', error.stack, 'BookingsService');
+      throw error;
+    }
   }
 }

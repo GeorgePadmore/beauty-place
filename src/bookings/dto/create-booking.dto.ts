@@ -41,12 +41,12 @@ export class CreateBookingDto {
 
   @ApiProperty({ description: 'Start time of the booking', example: '2024-01-15T10:00:00Z' })
   @IsDateString()
-  startTime: Date;
+  startTime: string;
 
   @ApiPropertyOptional({ description: 'End time of the booking (auto-calculated if not provided)' })
   @IsOptional()
   @IsDateString()
-  endTime?: Date;
+  endTime?: string;
 
   @ApiProperty({ 
     description: 'Type of booking',

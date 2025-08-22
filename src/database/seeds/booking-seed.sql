@@ -31,7 +31,7 @@ INSERT INTO bookings (
   '550e8400-e29b-41d4-a716-446655440001',
   '10756772-303e-4cdb-b2b1-6232d580efb2', -- John Doe
   '550e8400-e29b-41d4-a716-446655440010', -- Sarah Beauty Studio
-  '550e8400-e29b-41d4-a716-446655440001', -- Facial Treatment
+  '550e8400-e29b-41d4-a716-446655440030', -- Facial Treatment
   '2024-01-15 10:00:00',
   '2024-01-15 11:30:00',
   8500, -- $85.00
@@ -55,9 +55,9 @@ INSERT INTO bookings (
 -- Client 2 (Jane Smith) booking with Mike Stylist Mobile
 (
   '550e8400-e29b-41d4-a716-446655440002',
-  '20756772-303e-4cdb-b2b1-6232d580efb2', -- Jane Smith
+  '550e8400-e29b-41d4-a716-446655440002', -- Jane Smith
   '550e8400-e29b-41d4-a716-446655440011', -- Mike Stylist Mobile
-  '550e8400-e29b-41d4-a716-446655440002', -- Hair Styling
+  '550e8400-e29b-41d4-a716-446655440032', -- Hair Styling
   '2024-01-16 14:00:00',
   '2024-01-16 15:30:00',
   12000, -- $120.00
@@ -81,9 +81,9 @@ INSERT INTO bookings (
 -- Client 3 (Bob Johnson) booking with Lisa Massage Therapy
 (
   '550e8400-e29b-41d4-a716-446655440003',
-  '30756772-303e-4cdb-b2b1-6232d580efb2', -- Bob Johnson
+  '550e8400-e29b-41d4-a716-446655440003', -- Bob Johnson
   '550e8400-e29b-41d4-a716-446655440012', -- Lisa Massage Therapy
-  '550e8400-e29b-41d4-a716-446655440003', -- Deep Tissue Massage
+  '550e8400-e29b-41d4-a716-446655440035', -- Deep Tissue Massage
   '2024-01-17 16:00:00',
   '2024-01-17 17:00:00',
   8800, -- $88.00
@@ -109,7 +109,7 @@ INSERT INTO bookings (
   '550e8400-e29b-41d4-a716-446655440004',
   '10756772-303e-4cdb-b2b1-6232d580efb2', -- John Doe
   '550e8400-e29b-41d4-a716-446655440010', -- Sarah Beauty Studio
-  '550e8400-e29b-41d4-a716-446655440004', -- Hair Treatment
+  '550e8400-e29b-41d4-a716-446655440031', -- Hair Treatment
   '2024-01-20 13:00:00',
   '2024-01-20 14:00:00',
   6500, -- $65.00
@@ -133,9 +133,9 @@ INSERT INTO bookings (
 -- Client 2 (Jane Smith) second booking with Mike Stylist Mobile
 (
   '550e8400-e29b-41d4-a716-446655440005',
-  '20756772-303e-4cdb-b2b1-6232d580efb2', -- Jane Smith
+  '550e8400-e29b-41d4-a716-446655440002', -- Jane Smith
   '550e8400-e29b-41d4-a716-446655440011', -- Mike Stylist Mobile
-  '550e8400-e29b-41d4-a716-446655440005', -- Hair Coloring
+  '550e8400-e29b-41d4-a716-446655440033', -- Hair Coloring
   '2024-01-22 10:00:00',
   '2024-01-22 12:00:00',
   18000, -- $180.00
@@ -159,9 +159,9 @@ INSERT INTO bookings (
 -- Client 3 (Bob Johnson) second booking with Lisa Massage Therapy
 (
   '550e8400-e29b-41d4-a716-446655440006',
-  '30756772-303e-4cdb-b2b1-6232d580efb2', -- Bob Johnson
+  '550e8400-e29b-41d4-a716-446655440003', -- Bob Johnson
   '550e8400-e29b-41d4-a716-446655440012', -- Lisa Massage Therapy
-  '550e8400-e29b-41d4-a716-446655440006', -- Swedish Massage
+  '550e8400-e29b-41d4-a716-446655440034', -- Swedish Massage
   '2024-01-25 15:00:00',
   '2024-01-25 16:00:00',
   7700, -- $77.00
