@@ -24,10 +24,10 @@ export class ServiceAccount {
   professionalId: string;
 
   // Balance fields (using DECIMAL for precision)
-  @Column({ name: 'gross_balance', type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ name: 'gross_balance', type: 'decimal', precision: 10, scale: 2, default: '0.00' })
   grossBalance: number; // Total earnings before fees
 
-  @Column({ name: 'net_balance', type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ name: 'net_balance', type: 'decimal', precision: 10, scale: 2, default: '0.00' })
   netBalance: number; // Available balance after platform fees
 
   // Account status

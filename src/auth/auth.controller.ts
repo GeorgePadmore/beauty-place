@@ -14,6 +14,7 @@ import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ApiResponse as ApiResponseType } from '../common/helpers/api-response.helper';
 
+
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
