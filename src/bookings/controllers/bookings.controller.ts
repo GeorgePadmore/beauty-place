@@ -17,8 +17,11 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery }
 import { BookingsService } from '../services/bookings.service';
 import { CreateBookingDto, UpdateBookingDto, BookingResponseDto } from '../dto';
 import { BookingStatus, PaymentStatus } from '../entities/booking.entity';
+import { UserRole } from '../../users/entities/user.entity';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { ApiResponseHelper } from '../../common/helpers/api-response.helper';
 
 type ApiResponseType<T> = {
@@ -37,10 +40,16 @@ export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new booking' })
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.CLIENT)
+  @ApiOperation({ 
+    summary: 'Create a new booking',
+    description: 'Creates a new booking (Client role required)'
+  })
   @ApiResponse({ status: 201, description: 'Booking created successfully' })
   @ApiResponse({ status: 400, description: 'Bad request - validation failed or business rules violated' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Access denied. Client role required.' })
   @ApiResponse({ status: 409, description: 'Conflict - double booking or unavailable time slot' })
   async create(
     @Body() createBookingDto: CreateBookingDto,

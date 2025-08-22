@@ -25,8 +25,11 @@ import { CreateProfessionalDto } from '../dto/create-professional.dto';
 import { UpdateProfessionalDto } from '../dto/update-professional.dto';
 import { ProfessionalResponseDto } from '../dto/professional-response.dto';
 import { ProfessionalStatus, VerificationStatus } from '../entities/professional.entity';
+import { UserRole } from '../../users/entities/user.entity';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { Public } from '../../common/decorators/public.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { ApiResponseHelper, ApiResponse as ApiResponseType } from '../../common/helpers/api-response.helper';
 
 @ApiTags('Professionals')
@@ -34,7 +37,8 @@ import { ApiResponseHelper, ApiResponse as ApiResponseType } from '../../common/
 export class ProfessionalsController {
   constructor(private readonly professionalsService: ProfessionalsService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PROFESSIONAL)
   @Post()
   @ApiOperation({
     summary: 'Create a new professional profile',
@@ -52,6 +56,10 @@ export class ProfessionalsController {
   @ApiResponse({
     status: 409,
     description: 'Professional profile already exists for this user',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Access denied. Professional role required.',
   })
   @ApiBearerAuth()
   async create(@Body() createProfessionalDto: CreateProfessionalDto): Promise<ApiResponseType<ProfessionalResponseDto>> {

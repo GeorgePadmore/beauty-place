@@ -14,8 +14,11 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@ne
 import { AvailabilityService } from '../services/availability.service';
 import { CreateAvailabilityDto, UpdateAvailabilityDto, AvailabilityResponseDto } from '../dto';
 import { AvailabilityStatus } from '../entities/availability.entity';
+import { UserRole } from '../../users/entities/user.entity';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { ApiResponseHelper } from '../../common/helpers/api-response.helper';
 
 @ApiTags('Availability')
@@ -24,10 +27,15 @@ export class AvailabilityController {
   constructor(private readonly availabilityService: AvailabilityService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PROFESSIONAL)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a new availability slot' })
+  @ApiOperation({ 
+    summary: 'Create a new availability slot',
+    description: 'Creates new availability for a professional (Professional role required)'
+  })
   @ApiResponse({ status: 201, description: 'Availability created successfully' })
+  @ApiResponse({ status: 403, description: 'Access denied. Professional role required.' })
   async create(
     @Body() createAvailabilityDto: CreateAvailabilityDto,
     @CurrentUser() user: any

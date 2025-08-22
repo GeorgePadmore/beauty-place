@@ -15,6 +15,7 @@ import { Booking } from '../../bookings/entities/booking.entity';
 export enum UserRole {
   CLIENT = 'client',
   PROFESSIONAL = 'professional',
+  ADMINISTRATOR = 'administrator',
 }
 
 @Entity('users')
@@ -82,5 +83,9 @@ export class User {
 
   isClient(): boolean {
     return this.role === UserRole.CLIENT;
+  }
+
+  isAdministrator(): boolean {
+    return this.role === UserRole.ADMINISTRATOR;
   }
 }

@@ -12,8 +12,14 @@ Beauty Place is a comprehensive marketplace platform that connects beauty servic
 
 ### **2. User Types & Roles**
 - **Clients/Users**: End customers seeking beauty services
+  - **Permissions**: View professionals/services, check availability, create/manage own bookings, manage own profile
+  - **Restrictions**: Cannot create/modify professional profiles, services, or availability
 - **Professionals**: Service providers (beauticians, stylists, therapists, etc.)
+  - **Permissions**: Manage own profile, services, availability, view own bookings, update booking statuses
+  - **Restrictions**: Cannot access other professionals' data or admin functions
 - **Administrators**: Platform managers and support staff
+  - **Permissions**: Full access to all endpoints, user management, platform oversight
+  - **Restrictions**: Should use admin-specific endpoints for management tasks
 
 ### **3. Core Business Model**
 - **Commission-based**: Platform takes a percentage of each transaction
@@ -27,6 +33,13 @@ Beauty Place is a comprehensive marketplace platform that connects beauty servic
 - **Flexible signup**: Users can register during booking process OR separately
 - **Email verification**: Required for account activation
 - **Phone verification**: Optional but recommended for professionals
+
+### **2. Role-Based Access Control (RBAC)**
+- **Client Role**: Can view public data, create/manage own bookings, manage own profile
+- **Professional Role**: Can manage own profile/services/availability, view own bookings, update booking statuses
+- **Admin Role**: Full platform access for management and oversight
+- **Permission Validation**: Both route-level guards and business logic validation
+- **Data Ownership**: Users can only modify their own data (with admin override)
 
 ### **2. Authentication Strategy**
 - **JWT-based authentication** with secure HTTP-only cookies
@@ -46,6 +59,22 @@ Beauty Place is a comprehensive marketplace platform that connects beauty servic
 - **Service catalog**: View available services with pricing
 - **Search & filters**: Location, service type, price range, availability
 - **Reviews & ratings**: Public feedback from previous clients
+
+### **2. Client-Specific Functionality**
+- **Service browsing**: View all available services and professionals
+- **Availability checking**: Check professional availability for specific dates/times
+- **Booking creation**: Create new bookings for desired services
+- **Booking management**: View, modify, and cancel own bookings
+- **Review submission**: Rate and review completed services
+- **Profile management**: Update personal information and preferences
+
+### **3. Professional-Specific Functionality**
+- **Profile management**: Create and maintain professional profile
+- **Service management**: Add, edit, and remove service offerings
+- **Availability management**: Set working hours and availability
+- **Booking oversight**: View and manage incoming bookings
+- **Status updates**: Update booking statuses (confirm, complete, cancel)
+- **Performance tracking**: Monitor ratings, reviews, and earnings
 
 ### **2. Professional Profiles**
 - **Portfolio showcase**: Photos, certifications, experience
@@ -139,6 +168,14 @@ Beauty Place is a comprehensive marketplace platform that connects beauty servic
 - **Access control**: Role-based permissions and audit logging
 - **Privacy compliance**: GDPR, CCPA, and local regulations
 - **Secure APIs**: Rate limiting and input validation
+
+### **2. Permission System**
+- **Route-level protection**: JWT guards on protected endpoints
+- **Role validation**: User role verification before operations
+- **Ownership validation**: Users can only modify their own data
+- **Admin override**: Administrators have full access for management
+- **Public endpoints**: Unauthenticated access to browsing features
+- **Protected endpoints**: Authentication required for data modification
 
 ### **2. Business Security**
 - **Fraud prevention**: Suspicious activity detection

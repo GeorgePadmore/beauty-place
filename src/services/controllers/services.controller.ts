@@ -25,8 +25,11 @@ import { CreateServiceDto } from '../dto/create-service.dto';
 import { UpdateServiceDto } from '../dto/update-service.dto';
 import { ServiceResponseDto } from '../dto/service-response.dto';
 import { ServiceStatus } from '../entities/service.entity';
+import { UserRole } from '../../users/entities/user.entity';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { Public } from '../../common/decorators/public.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { ApiResponseHelper, ApiResponse as ApiResponseType } from '../../common/helpers/api-response.helper';
 
 @ApiTags('Services')
@@ -34,7 +37,8 @@ import { ApiResponseHelper, ApiResponse as ApiResponseType } from '../../common/
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PROFESSIONAL)
   @Post()
   @ApiOperation({
     summary: 'Create a new service',
@@ -48,6 +52,10 @@ export class ServicesController {
   @ApiResponse({
     status: 400,
     description: 'Invalid input data',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Access denied. Professional role required.',
   })
   @ApiResponse({
     status: 404,
