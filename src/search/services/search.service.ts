@@ -358,10 +358,10 @@ export class SearchService {
 
   private applyPriceFilters(queryBuilder: SelectQueryBuilder<any>, minPrice?: number, maxPrice?: number): SelectQueryBuilder<any> {
     if (minPrice) {
-      queryBuilder = queryBuilder.andWhere('services.basePrice >= :minPrice', { minPrice });
+      queryBuilder = queryBuilder.andWhere('CAST(services.base_price AS DECIMAL) >= :minPrice', { minPrice });
     }
     if (maxPrice) {
-      queryBuilder = queryBuilder.andWhere('services.basePrice <= :maxPrice', { maxPrice });
+      queryBuilder = queryBuilder.andWhere('CAST(services.base_price AS DECIMAL) <= :maxPrice', { maxPrice });
     }
     return queryBuilder;
   }
@@ -406,20 +406,24 @@ export class SearchService {
     longitude: number,
     radius: number
   ): SelectQueryBuilder<any> {
-    // Calculate bounding box for efficient location search
-    const latDelta = radius / 111.32; // 1 degree latitude ≈ 111.32 km
-    const lonDelta = radius / (111.32 * Math.cos(latitude * Math.PI / 180));
-
-    queryBuilder = queryBuilder.andWhere(
-      'professional.latitude BETWEEN :minLat AND :maxLat AND professional.longitude BETWEEN :minLon AND :maxLon',
-      {
-        minLat: latitude - latDelta,
-        maxLat: latitude + latDelta,
-        minLon: longitude - lonDelta,
-        maxLon: longitude + lonDelta,
-      }
-    );
-
+    // Only apply location search if coordinates are provided and valid
+    if (latitude && longitude && !isNaN(latitude) && !isNaN(longitude)) {
+      // Calculate bounding box for efficient location search
+      const latDelta = radius / 111.32; // 1 degree latitude ≈ 111.32 km
+      const lonDelta = radius / (111.32 * Math.cos(latitude * Math.PI / 180));
+      
+      queryBuilder = queryBuilder
+        .andWhere('professional.latitude IS NOT NULL')
+        .andWhere('professional.longitude IS NOT NULL')
+        .andWhere('professional.latitude BETWEEN :minLat AND :maxLat', {
+          minLat: latitude - latDelta,
+          maxLat: latitude + latDelta,
+        })
+        .andWhere('professional.longitude BETWEEN :minLon AND :maxLon', {
+          minLon: longitude - lonDelta,
+          maxLon: longitude + lonDelta,
+        });
+    }
     return queryBuilder;
   }
 

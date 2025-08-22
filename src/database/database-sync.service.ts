@@ -270,8 +270,33 @@ export class DatabaseSyncService {
         `;
         await this.dataSource.query(updateLocationQuery);
         this.logger.log('Sample coordinates added to existing professionals');
+
+        // Fix price field types in services table
+        const fixPriceFieldsQuery = `
+          ALTER TABLE services 
+          ALTER COLUMN base_price TYPE DECIMAL(10,2) USING CAST(base_price AS DECIMAL(10,2)),
+          ALTER COLUMN discounted_price TYPE DECIMAL(10,2) USING CAST(discounted_price AS DECIMAL(10,2)),
+          ALTER COLUMN travel_fee TYPE DECIMAL(10,2) USING CAST(travel_fee AS DECIMAL(10,2)),
+          ALTER COLUMN travel_fee_per_km TYPE DECIMAL(10,2) USING CAST(travel_fee_per_km AS DECIMAL(10,2)),
+          ALTER COLUMN max_travel_distance TYPE DECIMAL(8,2) USING CAST(max_travel_distance AS DECIMAL(8,2));
+        `;
+        await this.dataSource.query(fixPriceFieldsQuery);
+        this.logger.log('Price field types fixed in services table');
+
+        // Add database indexes for search performance
+        const addIndexesQuery = `
+          CREATE INDEX IF NOT EXISTS idx_professionals_location ON professionals(latitude, longitude);
+          CREATE INDEX IF NOT EXISTS idx_professionals_category ON professionals(category);
+          CREATE INDEX IF NOT EXISTS idx_professionals_status ON professionals(status);
+          CREATE INDEX IF NOT EXISTS idx_professionals_rating ON professionals(average_rating);
+          CREATE INDEX IF NOT EXISTS idx_services_category ON services(category);
+          CREATE INDEX IF NOT EXISTS idx_services_status ON services(status);
+          CREATE INDEX IF NOT EXISTS idx_services_price ON services(base_price);
+        `;
+        await this.dataSource.query(addIndexesQuery);
+        this.logger.log('Search performance indexes added');
       } catch (error) {
-        this.logger.warn('Could not add location columns (they may already exist):', error.message);
+        this.logger.warn('Could not update database schema (some operations may have failed):', error.message);
       }
 
       // Insert service seed data
