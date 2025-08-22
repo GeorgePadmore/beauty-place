@@ -13,6 +13,7 @@
 - **Database Schema**: Comprehensive entity design with relationships
 - **API Response Standardization**: Consistent response format across all endpoints
 - **Security Implementation**: Route protection, input validation, and error handling
+- **API Rate Limiting**: Global rate limiting with 100 requests per minute per IP
 - **Documentation**: Swagger API documentation and technical specifications
 
 ### **🔄 In Progress**
@@ -59,6 +60,7 @@
 - **Database**: PostgreSQL with TypeORM
 - **Authentication**: JWT with secure HTTP-only cookies
 - **Validation**: class-validator with comprehensive input validation
+- **Rate Limiting**: @nestjs/throttler for API protection
 - **Documentation**: Swagger/OpenAPI 3.0
 
 ### **Architecture Principles**
@@ -86,6 +88,15 @@ src/
 - **Role-Based Access**: Granular permission system
 - **Input Validation**: Comprehensive request validation
 
+### **API Security & Rate Limiting**
+- **Global Rate Limiting**: 100 requests per minute per IP address
+- **Implementation**: Built-in NestJS ThrottlerGuard with @nestjs/throttler package
+- **Configuration**: Centralized rate limit configuration with 60-second TTL
+- **Scope**: Automatically applies to all API endpoints
+- **Response**: HTTP 429 "Too Many Requests" when rate limit exceeded
+- **Protection**: Prevents API abuse, DoS attacks, and ensures fair usage
+- **Monitoring**: Rate limit violations logged for security analysis
+
 ### **Data Protection**
 - **Password Hashing**: bcrypt with salt rounds
 - **Data Encryption**: Sensitive data encryption
@@ -112,6 +123,7 @@ src/
 - Core infrastructure and user management
 - Authentication and security implementation
 - Database schema and API standardization
+- API rate limiting and security protection
 
 ### **Phase 2: Service Management (Next)**
 - Professional profiles and verification
@@ -177,6 +189,7 @@ src/
 - **API Documentation**: Swagger/OpenAPI 3.0
 - **Architecture Guide**: Technical architecture and design
 - **Database Schema**: Entity relationships and constraints
+- **Rate Limiting Config**: Global API protection configuration
 - **Development Guide**: Setup and contribution guidelines
 
 ### **Business Documentation**

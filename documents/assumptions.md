@@ -169,7 +169,15 @@ Beauty Place is a comprehensive marketplace platform that connects beauty servic
 - **Privacy compliance**: GDPR, CCPA, and local regulations
 - **Secure APIs**: Rate limiting and input validation
 
-### **2. Permission System**
+### **2. API Security & Rate Limiting**
+- **Global Rate Limiting**: 100 requests per minute per IP address
+- **ThrottlerGuard Implementation**: Built-in NestJS rate limiting with @nestjs/throttler
+- **Configuration**: Centralized rate limit configuration with TTL and request limits
+- **Scope**: Applies to all API endpoints automatically
+- **Response**: Returns HTTP 429 "Too Many Requests" when limit exceeded
+- **Protection**: Prevents API abuse, DoS attacks, and ensures fair usage
+
+### **3. Permission System**
 - **Route-level protection**: JWT guards on protected endpoints
 - **Role validation**: User role verification before operations
 - **Ownership validation**: Users can only modify their own data
