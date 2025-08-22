@@ -27,6 +27,7 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { UserRole } from './entities/user.entity';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Public } from '../common/decorators/public.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ApiResponseHelper, ApiResponse as ApiResponseType } from '../common/helpers/api-response.helper';
 
 @ApiTags('Users')
@@ -89,7 +90,7 @@ export class UsersController {
   @Get(':id')
   @ApiOperation({
     summary: 'Get user by ID',
-    description: 'Retrieves a specific user by their unique identifier',
+    description: 'Retrieves a specific user by their unique identifier (users can only view their own profile)',
   })
   @ApiParam({
     name: 'id',
@@ -101,12 +102,19 @@ export class UsersController {
     description: 'User retrieved successfully',
   })
   @ApiResponse({
+    status: 403,
+    description: 'Forbidden - You can only view your own profile',
+  })
+  @ApiResponse({
     status: 404,
     description: 'User not found',
   })
   @ApiBearerAuth()
-  async findOne(@Param('id') id: string): Promise<ApiResponseType<UserResponseDto>> {
-    const user = await this.usersService.findOne(id);
+  async findOne(
+    @Param('id') id: string,
+    @CurrentUser('id') requestingUserId: string,
+  ): Promise<ApiResponseType<UserResponseDto>> {
+    const user = await this.usersService.findOne(id, requestingUserId);
     return ApiResponseHelper.success(user, 'User retrieved successfully', '000');
   }
 
@@ -114,7 +122,7 @@ export class UsersController {
   @Patch(':id')
   @ApiOperation({
     summary: 'Update user',
-    description: 'Updates an existing user with the provided information',
+    description: 'Updates an existing user with the provided information (users can only update their own profile)',
   })
   @ApiParam({
     name: 'id',
@@ -131,6 +139,10 @@ export class UsersController {
     description: 'Invalid input data',
   })
   @ApiResponse({
+    status: 403,
+    description: 'Forbidden - You can only update your own profile',
+  })
+  @ApiResponse({
     status: 404,
     description: 'User not found',
   })
@@ -142,8 +154,9 @@ export class UsersController {
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser('id') requestingUserId: string,
   ): Promise<ApiResponseType<UserResponseDto>> {
-    const user = await this.usersService.update(id, updateUserDto);
+    const user = await this.usersService.update(id, updateUserDto, requestingUserId);
     return ApiResponseHelper.success(user, 'User updated successfully', '000');
   }
 
@@ -152,7 +165,7 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Delete user',
-    description: 'Soft deletes a user (marks as deleted but keeps data)',
+    description: 'Soft deletes a user (marks as deleted but keeps data) (users can only delete their own profile)',
   })
   @ApiParam({
     name: 'id',
@@ -164,12 +177,19 @@ export class UsersController {
     description: 'User deleted successfully',
   })
   @ApiResponse({
+    status: 403,
+    description: 'Forbidden - You can only delete your own profile',
+  })
+  @ApiResponse({
     status: 404,
     description: 'User not found',
   })
   @ApiBearerAuth()
-  async remove(@Param('id') id: string): Promise<ApiResponseType<null>> {
-    await this.usersService.remove(id);
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser('id') requestingUserId: string,
+  ): Promise<ApiResponseType<null>> {
+    await this.usersService.remove(id, requestingUserId);
     return ApiResponseHelper.success(null, 'User deleted successfully', '000');
   }
 
@@ -177,7 +197,7 @@ export class UsersController {
   @Patch(':id/toggle-active')
   @ApiOperation({
     summary: 'Toggle user active status',
-    description: 'Activates or deactivates a user account',
+    description: 'Activates or deactivates a user account (users can only toggle their own status)',
   })
   @ApiParam({
     name: 'id',
@@ -189,12 +209,19 @@ export class UsersController {
     description: 'User active status toggled successfully',
   })
   @ApiResponse({
+    status: 403,
+    description: 'Forbidden - You can only toggle your own profile status',
+  })
+  @ApiResponse({
     status: 404,
     description: 'User not found',
   })
   @ApiBearerAuth()
-  async toggleActive(@Param('id') id: string): Promise<ApiResponseType<UserResponseDto>> {
-    const user = await this.usersService.toggleActive(id);
+  async toggleActive(
+    @Param('id') id: string,
+    @CurrentUser('id') requestingUserId: string,
+  ): Promise<ApiResponseType<UserResponseDto>> {
+    const user = await this.usersService.toggleActive(id, requestingUserId);
     return ApiResponseHelper.success(user, 'User active status toggled successfully', '000');
   }
 }

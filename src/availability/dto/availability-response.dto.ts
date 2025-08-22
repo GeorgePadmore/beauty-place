@@ -48,11 +48,11 @@ export class AvailabilityResponseDto {
   @ApiPropertyOptional({ description: 'Maximum bookings allowed' })
   maxBookings?: number;
 
-  @ApiProperty({ description: 'Current number of bookings' })
-  currentBookings: number;
+  @ApiPropertyOptional({ description: 'Current number of bookings' })
+  currentBookings?: number;
 
-  @ApiProperty({ description: 'Hours in advance bookings can be made' })
-  advanceBookingHours: number;
+  @ApiPropertyOptional({ description: 'Hours in advance bookings can be made' })
+  advanceBookingHours?: number;
 
   @ApiPropertyOptional({ description: 'Additional notes' })
   notes?: string;
@@ -63,8 +63,8 @@ export class AvailabilityResponseDto {
   @ApiProperty({ description: 'Duration in hours' })
   durationHours: number;
 
-  @ApiProperty({ description: 'Break duration in minutes' })
-  breakDurationMinutes: number;
+  @ApiPropertyOptional({ description: 'Break duration in minutes' })
+  breakDurationMinutes?: number;
 
   @ApiProperty({ description: 'Available duration in minutes (excluding breaks)' })
   availableDurationMinutes: number;
@@ -75,11 +75,11 @@ export class AvailabilityResponseDto {
   @ApiProperty({ description: 'Whether this slot is active' })
   isActive: boolean;
 
-  @ApiProperty({ description: 'Creation timestamp' })
-  createdAt: Date;
+  @ApiPropertyOptional({ description: 'Creation timestamp' })
+  createdAt?: Date;
 
-  @ApiProperty({ description: 'Last update timestamp' })
-  updatedAt: Date;
+  @ApiPropertyOptional({ description: 'Last update timestamp' })
+  updatedAt?: Date;
 
   // Professional information
   @ApiProperty({ description: 'Professional business name' })

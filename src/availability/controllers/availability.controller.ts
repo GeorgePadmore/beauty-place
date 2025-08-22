@@ -17,6 +17,7 @@ import { AvailabilityStatus } from '../entities/availability.entity';
 import { UserRole } from '../../users/entities/user.entity';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { ApiResponseHelper } from '../../common/helpers/api-response.helper';
@@ -67,14 +68,47 @@ export class AvailabilityController {
 
   @Get('professional/:professionalId')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get availability slots for a specific professional' })
+  @ApiOperation({ 
+    summary: 'Get availability slots for a specific professional (Authenticated)',
+    description: 'Endpoint to view professional availability with full details for authenticated users.'
+  })
   @ApiResponse({ status: 200, description: 'Professional availabilities retrieved successfully' })
-  async findByProfessional(@Param('professionalId') professionalId: string) {
-    const availabilities = await this.availabilityService.findByProfessional(professionalId);
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiBearerAuth()
+  async findByProfessional(
+    @Param('professionalId') professionalId: string,
+    @CurrentUser() user: any
+  ) {
+    const availabilities = await this.availabilityService.findByProfessional(
+      professionalId, 
+      user?.id,
+      user?.role
+    );
     return ApiResponseHelper.success(
       availabilities,
       'Professional availabilities retrieved successfully',
+      '000'
+    );
+  }
+
+  @Get('professional/:professionalId/public')
+  @Public()
+  @ApiOperation({ 
+    summary: 'Get public availability slots for a specific professional',
+    description: 'Public endpoint to view basic professional availability information.'
+  })
+  @ApiResponse({ status: 200, description: 'Public availability retrieved successfully' })
+  async findPublicByProfessional(
+    @Param('professionalId') professionalId: string
+  ) {
+    const availabilities = await this.availabilityService.findByProfessional(
+      professionalId, 
+      undefined,
+      undefined
+    );
+    return ApiResponseHelper.success(
+      availabilities,
+      'Public availability retrieved successfully',
       '000'
     );
   }

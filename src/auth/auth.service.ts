@@ -3,14 +3,16 @@ import { JwtService } from '@nestjs/jwt';
 import type { Response } from 'express';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from '../users/dto/login.dto';
-import { UserProfile } from '../common/interfaces/user-profile.interface';
+import { UserProfileWithoutId } from '../common/interfaces/user-profile.interface';
 import { ApiResponseHelper } from '../common/helpers/api-response.helper';
+import { LoggerService } from '../common/services/logger.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private readonly logger: LoggerService,
   ) {}
 
   async login(loginDto: LoginDto, response: Response) {
@@ -41,9 +43,11 @@ export class AuthService {
     const sessionId = this.generateSessionId();
 
     // Set secure HTTP-only cookie
+    // eslint-disable-next-line no-undef
+    const isProduction = process.env.NODE_ENV === 'production';
     response.cookie('accessToken', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      secure: isProduction, // HTTPS only in production
       sameSite: 'strict',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       path: '/',
@@ -52,9 +56,8 @@ export class AuthService {
     // Update last login
     await this.updateLastLogin(user.id);
 
-    // Create user profile
-    const userProfile: UserProfile = {
-      id: user.id,
+    // Create user profile (excluding ID for security)
+    const userProfile: UserProfileWithoutId = {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
@@ -95,7 +98,7 @@ export class AuthService {
   private async updateLastLogin(userId: string): Promise<void> {
     // This would typically update a lastLoginAt field in the user entity
     // For now, we'll just log it
-    console.log(`User ${userId} logged in at ${new Date().toISOString()}`);
+    this.logger.debug(`User ${userId} logged in at ${new Date().toISOString()}`, 'AuthService');
   }
 
   private getPermissionsForRole(role: string): string[] {

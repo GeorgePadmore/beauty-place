@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -22,6 +23,9 @@ async function bootstrap() {
     }),
   );
 
+  // Global exception filter for standardized error responses
+  app.useGlobalFilters(new GlobalExceptionFilter());
+
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Beauty Place API')
@@ -39,9 +43,11 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
+  // eslint-disable-next-line no-undef
   const port = process.env.PORT || 3000;
   await app.listen(port);
   
+  // Note: Using console.log for bootstrap messages as logger service not yet available
   console.log(`🚀 Application is running on: http://localhost:${port}`);
   console.log(`📚 Swagger documentation: http://localhost:${port}/api`);
 }

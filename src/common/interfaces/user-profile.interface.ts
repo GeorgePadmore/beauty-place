@@ -12,11 +12,15 @@ export interface UserProfile {
   createdAt: string;                   // ISO 8601 timestamp of account creation
 }
 
+export interface UserProfileWithoutId extends Omit<UserProfile, 'id'> {
+  // Same as UserProfile but without the ID field
+}
+
 export interface LoginResponse {
   success: boolean;
   responseMessage: string;
   responseData: {
-    user: UserProfile;
+    user: UserProfileWithoutId;
     sessionId: string;
   };
   timestamp: string;

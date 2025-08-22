@@ -5,6 +5,7 @@ import { Availability, AvailabilityStatus, DayOfWeek } from '../entities/availab
 import { Professional } from '../../professionals/entities/professional.entity';
 import { CreateAvailabilityDto, UpdateAvailabilityDto, AvailabilityResponseDto } from '../dto';
 import { ApiResponseHelper } from '../../common/helpers/api-response.helper';
+import { LoggerService } from '../../common/services/logger.service';
 
 @Injectable()
 export class AvailabilityService {
@@ -13,6 +14,7 @@ export class AvailabilityService {
     private availabilityRepository: Repository<Availability>,
     @InjectRepository(Professional)
     private professionalRepository: Repository<Professional>,
+    private readonly logger: LoggerService,
   ) {}
 
   async create(createAvailabilityDto: CreateAvailabilityDto, userId: string): Promise<AvailabilityResponseDto> {
@@ -70,16 +72,37 @@ export class AvailabilityService {
     return this.mapToResponseDto(availability, availability.professional);
   }
 
-  async findByProfessional(professionalId: string): Promise<AvailabilityResponseDto[]> {
+  async findByProfessional(
+    professionalId: string, 
+    requestingUserId?: string, 
+    requestingUserRole?: string
+  ): Promise<AvailabilityResponseDto[]> {
     const availabilities = await this.availabilityRepository.find({
       where: { professionalId, isDeleted: false },
       relations: ['professional'],
       order: { dayOfWeek: 'ASC', startTime: 'ASC' }
     });
 
-    return availabilities.map(availability => 
-      this.mapToResponseDto(availability, availability.professional)
-    );
+    // Check if the requesting user owns this professional profile
+    let isOwner = false;
+    if (requestingUserId) {
+      const professional = await this.professionalRepository.findOne({
+        where: { id: professionalId, isDeleted: false }
+      });
+      isOwner = professional ? professional.userId === requestingUserId : false;
+    }
+
+    // If user is the owner (professional) or admin, show all availability with full details
+    if (isOwner || requestingUserRole === 'administrator') {
+      return availabilities.map(availability => 
+        this.mapToResponseDto(availability, availability.professional)
+      );
+    }
+
+    // Otherwise, show public availability (filtered and limited details)
+    return availabilities
+      .filter(availability => availability.isAvailable && availability.status === 'available')
+      .map(availability => this.mapToPublicResponseDto(availability, availability.professional));
   }
 
   async findByDateRange(professionalId: string, startDate: Date, endDate: Date): Promise<AvailabilityResponseDto[]> {
@@ -367,6 +390,38 @@ export class AvailabilityService {
       isActive: availability.isActive,
       createdAt: availability.createdAt,
       updatedAt: availability.updatedAt,
+      professionalBusinessName: professional.businessName,
+      professionalTitle: professional.professionalTitle,
+      professionalCategory: professional.category,
+    };
+  }
+
+  private mapToPublicResponseDto(availability: Availability, professional: Professional): AvailabilityResponseDto {
+    return {
+      id: availability.id,
+      professionalId: availability.professionalId,
+      dayOfWeek: availability.dayOfWeek,
+      dayName: availability.dayName,
+      date: availability.date,
+      startTime: availability.startTime,
+      endTime: availability.endTime,
+      status: availability.status,
+      isAvailable: availability.isAvailable,
+      isRecurring: availability.isRecurring,
+      breakStartTime: undefined, // Hide break details from public
+      breakEndTime: undefined,   // Hide break details from public
+      maxBookings: undefined,    // Hide booking capacity from public
+      currentBookings: undefined, // Hide current bookings from public
+      advanceBookingHours: undefined, // Hide advance booking hours from public
+      notes: undefined,          // Hide internal notes from public
+      durationMinutes: availability.durationMinutes,
+      durationHours: availability.durationHours,
+      breakDurationMinutes: undefined, // Hide break duration from public
+      availableDurationMinutes: availability.availableDurationMinutes,
+      canAcceptBooking: availability.canAcceptBooking(),
+      isActive: availability.isActive,
+      createdAt: undefined,      // Hide creation date from public
+      updatedAt: undefined,      // Hide update date from public
       professionalBusinessName: professional.businessName,
       professionalTitle: professional.professionalTitle,
       professionalCategory: professional.category,

@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -63,13 +64,20 @@ export class UsersService {
   /**
    * Find user by ID
    */
-  async findOne(id: string): Promise<UserResponseDto> {
+  async findOne(id: string, requestingUserId?: string): Promise<UserResponseDto> {
     const user = await this.usersRepository.findOne({
       where: { id, isDeleted: false },
     });
 
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    // If requestingUserId is provided, check ownership
+    if (requestingUserId && requestingUserId !== id) {
+      // Check if requesting user is admin (future enhancement)
+      // For now, only allow users to view their own profile
+      throw new ForbiddenException('You can only view your own profile');
     }
 
     return this.mapToResponseDto(user);
@@ -87,13 +95,18 @@ export class UsersService {
   /**
    * Update user
    */
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
+  async update(id: string, updateUserDto: UpdateUserDto, requestingUserId?: string): Promise<UserResponseDto> {
     const user = await this.usersRepository.findOne({
       where: { id, isDeleted: false },
     });
 
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    // Check ownership
+    if (requestingUserId && requestingUserId !== id) {
+      throw new ForbiddenException('You can only update your own profile');
     }
 
     // Check if email is being updated and if it's already taken
@@ -117,13 +130,18 @@ export class UsersService {
   /**
    * Soft delete user
    */
-  async remove(id: string): Promise<void> {
+  async remove(id: string, requestingUserId?: string): Promise<void> {
     const user = await this.usersRepository.findOne({
       where: { id, isDeleted: false },
     });
 
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    // Check ownership
+    if (requestingUserId && requestingUserId !== id) {
+      throw new ForbiddenException('You can only delete your own profile');
     }
 
     // Soft delete
@@ -154,13 +172,18 @@ export class UsersService {
   /**
    * Activate/deactivate user
    */
-  async toggleActive(id: string): Promise<UserResponseDto> {
+  async toggleActive(id: string, requestingUserId?: string): Promise<UserResponseDto> {
     const user = await this.usersRepository.findOne({
       where: { id, isDeleted: false },
     });
 
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    // Check ownership
+    if (requestingUserId && requestingUserId !== id) {
+      throw new ForbiddenException('You can only toggle your own profile status');
     }
 
     user.isActive = !user.isActive;

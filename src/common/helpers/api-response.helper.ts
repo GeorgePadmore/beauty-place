@@ -42,6 +42,35 @@ export class ApiResponseHelper {
   }
 
   /**
+   * Create a role-based access denied response
+   */
+  static accessDenied(
+    requiredRole: string,
+    userRole: string,
+    responseCode: string = '403',
+  ): ApiResponse<null> {
+    return this.error(
+      `Access denied. You need ${requiredRole} permissions to perform this action.`,
+      responseCode,
+      null,
+    );
+  }
+
+  /**
+   * Create a validation error response with field details
+   */
+  static validationError(
+    errors: any,
+    responseCode: string = '400',
+  ): ApiResponse<any> {
+    return this.error(
+      'Please check your input and try again.',
+      responseCode,
+      { errors },
+    );
+  }
+
+  /**
    * Create a not found response
    */
   static notFound(
@@ -55,19 +84,7 @@ export class ApiResponseHelper {
     );
   }
 
-  /**
-   * Create a validation error response
-   */
-  static validationError(
-    errors: any,
-    responseCode: string = '400',
-  ): ApiResponse<any> {
-    return this.error(
-      'Validation failed',
-      responseCode,
-      { errors },
-    );
-  }
+
 
   /**
    * Create an unauthorized response
