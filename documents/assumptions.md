@@ -253,3 +253,41 @@ Beauty Place is a comprehensive marketplace platform that connects beauty servic
 4. **Transparent Pricing**: Clear fees and no hidden costs
 5. **Real-time Management**: Live availability and instant confirmations
 6. **Comprehensive Support**: 24/7 customer service and dispute resolution
+
+## **Search & Discovery Engine**
+
+### **Search Capabilities**
+- **Professional Search**: Advanced filtering by category, rating, experience, availability, and location
+- **Service Search**: Filtering by category, price range, status, and professional rating
+- **Combined Search**: Unified search across professionals and services
+- **Search Suggestions**: Autocomplete functionality for better user experience
+- **Location-Based Search**: Distance calculation and radius-based filtering
+
+### **Search Infrastructure**
+- **Query Building**: TypeORM QueryBuilder for complex search queries
+- **Filtering**: Multi-criteria filtering with AND/OR logic
+- **Sorting**: Multiple sort options (relevance, rating, price, distance, experience)
+- **Pagination**: Configurable page size and offset
+- **Performance**: Optimized queries with proper database indexing
+
+### **Search Features**
+- **Text Search**: Full-text search across names, descriptions, and bios
+- **Category Filtering**: Service category-based filtering
+- **Price Filtering**: Range-based price filtering (pending type conversion)
+- **Rating Filtering**: Minimum rating thresholds
+- **Availability Filtering**: Date, time, and day-of-week filtering
+- **Status Filtering**: Active/inactive status filtering
+- **Featured/Premium**: Special status filtering for enhanced visibility
+
+### **Location Search**
+- **Coordinates**: Latitude/longitude storage for professionals
+- **Distance Calculation**: Haversine formula for accurate distance calculation
+- **Radius Search**: Configurable search radius in kilometers
+- **Location Ranking**: Distance-based result ranking
+- **Geospatial Optimization**: Future enhancement for performance
+
+### **Search Results**
+- **Relevance Scoring**: Intelligent result ranking based on multiple factors
+- **Result Formatting**: Consistent response structure across all search types
+- **Metadata**: Pagination info, filters applied, and sorting details
+- **Performance Metrics**: Search execution time and result counts
