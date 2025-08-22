@@ -6,7 +6,7 @@ INSERT INTO users (id, email, password_hash, role, first_name, last_name, phone,
 (
   '550e8400-e29b-41d4-a716-446655440001',
   'john.doe@example.com',
-  '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.s8uG', -- password123
+  '$2b$10$swZ8OSqs0Cl6xoSwAomc1.LBL/YSXDXXWn81S9dev7ddwHnVYep.6', -- password123
   'client',
   'John',
   'Doe',
@@ -20,7 +20,7 @@ INSERT INTO users (id, email, password_hash, role, first_name, last_name, phone,
 (
   '550e8400-e29b-41d4-a716-446655440002',
   'jane.smith@example.com',
-  '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.s8uG', -- password123
+  '$2b$10$swZ8OSqs0Cl6xoSwAomc1.LBL/YSXDXXWn81S9dev7ddwHnVYep.6', -- password123
   'client',
   'Jane',
   'Smith',
@@ -34,7 +34,7 @@ INSERT INTO users (id, email, password_hash, role, first_name, last_name, phone,
 (
   '550e8400-e29b-41d4-a716-446655440003',
   'bob.wilson@example.com',
-  '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.s8uG', -- password123
+  '$2b$10$swZ8OSqs0Cl6xoSwAomc1.LBL/YSXDXXWn81S9dev7ddwHnVYep.6', -- password123
   'client',
   'Bob',
   'Wilson',
@@ -51,7 +51,7 @@ INSERT INTO users (id, email, password_hash, role, first_name, last_name, phone,
 (
   '550e8400-e29b-41d4-a716-446655440004',
   'sarah.beauty@example.com',
-  '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.s8uG', -- password123
+  '$2b$10$swZ8OSqs0Cl6xoSwAomc1.LBL/YSXDXXWn81S9dev7ddwHnVYep.6', -- password123
   'professional',
   'Sarah',
   'Beauty',
@@ -65,7 +65,7 @@ INSERT INTO users (id, email, password_hash, role, first_name, last_name, phone,
 (
   '550e8400-e29b-41d4-a716-446655440005',
   'mike.stylist@example.com',
-  '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.s8uG', -- password123
+  '$2b$10$swZ8OSqs0Cl6xoSwAomc1.LBL/YSXDXXWn81S9dev7ddwHnVYep.6', -- password123
   'professional',
   'Mike',
   'Stylist',
@@ -79,7 +79,7 @@ INSERT INTO users (id, email, password_hash, role, first_name, last_name, phone,
 (
   '550e8400-e29b-41d4-a716-446655440006',
   'lisa.massage@example.com',
-  '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.s8uG', -- password123
+  '$2b$10$swZ8OSqs0Cl6xoSwAomc1.LBL/YSXDXXWn81S9dev7ddwHnVYep.6', -- password123
   'professional',
   'Lisa',
   'Massage',
