@@ -23,7 +23,12 @@ export {
 } from '../availability/entities/availability.entity';
 
 // Booking entities
-export { Booking, BookingStatus } from '../bookings/entities/booking.entity';
+export { 
+  Booking, 
+  BookingStatus, 
+  BookingType, 
+  PaymentStatus 
+} from '../bookings/entities/booking.entity';
 
 // Payment entities
 export {

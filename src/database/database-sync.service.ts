@@ -239,6 +239,428 @@ export class DatabaseSyncService {
 
       await this.dataSource.query(professionalSeedQuery);
       this.logger.log('Professional seed data completed');
+
+      // Insert service seed data
+      const serviceSeedQuery = `
+        INSERT INTO services (
+          id, professional_id, service_name, description, category, status, service_type, pricing_model,
+          base_price, discounted_price, currency, duration_minutes, is_featured, featured_until,
+          travel_fee, travel_fee_per_km, max_travel_distance, average_rating, total_reviews, total_bookings,
+          completion_rate, is_deleted, created_at, updated_at
+        ) VALUES
+        (
+          '550e8400-e29b-41d4-a716-446655440001',
+          '550e8400-e29b-41d4-a716-446655440010',
+          'Facial Treatment',
+          'Professional facial treatment with premium skincare products',
+          'facial',
+          'active',
+          'treatment',
+          'fixed',
+          75.00,
+          75.00,
+          'USD',
+          90,
+          true,
+          '2024-12-31',
+          5.00,
+          0.50,
+          25.00,
+          4.8,
+          45,
+          120,
+          98.5,
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440002',
+          '550e8400-e29b-41d4-a716-446655440011',
+          'Hair Styling',
+          'Professional hair styling and cutting services',
+          'hair',
+          'active',
+          'styling',
+          'fixed',
+          110.00,
+          110.00,
+          'USD',
+          90,
+          true,
+          '2024-12-31',
+          10.00,
+          0.50,
+          30.00,
+          4.9,
+          67,
+          89,
+          99.1,
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440003',
+          '550e8400-e29b-41d4-a716-446655440012',
+          'Deep Tissue Massage',
+          'Therapeutic deep tissue massage for muscle relief',
+          'massage',
+          'active',
+          'therapy',
+          'fixed',
+          80.00,
+          80.00,
+          'USD',
+          60,
+          false,
+          NULL,
+          12.00,
+          0.60,
+          20.00,
+          4.7,
+          34,
+          56,
+          96.4,
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440004',
+          '550e8400-e29b-41d4-a716-446655440010',
+          'Hair Treatment',
+          'Nourishing hair treatment and conditioning',
+          'hair',
+          'active',
+          'treatment',
+          'fixed',
+          60.00,
+          60.00,
+          'USD',
+          60,
+          false,
+          NULL,
+          0.00,
+          0.00,
+          0.00,
+          4.6,
+          23,
+          45,
+          97.8,
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440005',
+          '550e8400-e29b-41d4-a716-446655440011',
+          'Hair Coloring',
+          'Professional hair coloring and highlights',
+          'hair',
+          'active',
+          'coloring',
+          'fixed',
+          160.00,
+          160.00,
+          'USD',
+          120,
+          true,
+          '2024-12-31',
+          10.00,
+          0.50,
+          30.00,
+          4.8,
+          28,
+          34,
+          94.1,
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440006',
+          '550e8400-e29b-41d4-a716-446655440012',
+          'Swedish Massage',
+          'Relaxing Swedish massage for stress relief',
+          'massage',
+          'active',
+          'therapy',
+          'fixed',
+          70.00,
+          70.00,
+          'USD',
+          60,
+          false,
+          NULL,
+          0.00,
+          0.00,
+          0.00,
+          4.5,
+          12,
+          23,
+          95.7,
+          false,
+          NOW(),
+          NOW()
+        )
+        ON CONFLICT (id) DO NOTHING;
+      `;
+
+      await this.dataSource.query(serviceSeedQuery);
+      this.logger.log('Service seed data completed');
+
+      // Insert availability seed data
+      const availabilitySeedQuery = `
+        INSERT INTO availability (
+          id, professional_id, day_of_week, date, start_time, end_time, status, is_available, is_recurring,
+          break_start_time, break_end_time, max_bookings, current_bookings, advance_booking_hours, notes,
+          is_active, is_deleted, created_at, updated_at
+        ) VALUES
+        -- Sarah Beauty Studio recurring schedule
+        (
+          '550e8400-e29b-41d4-a716-446655440001',
+          '550e8400-e29b-41d4-a716-446655440010',
+          1, -- Monday
+          NULL,
+          '09:00:00',
+          '18:00:00',
+          'available',
+          true,
+          true,
+          '12:00:00',
+          '13:00:00',
+          8,
+          2,
+          24,
+          'Monday schedule with lunch break',
+          true,
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440002',
+          '550e8400-e29b-41d4-a716-446655440010',
+          2, -- Tuesday
+          NULL,
+          '09:00:00',
+          '18:00:00',
+          'available',
+          true,
+          true,
+          '12:00:00',
+          '13:00:00',
+          8,
+          1,
+          24,
+          'Tuesday schedule with lunch break',
+          true,
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440003',
+          '550e8400-e29b-41d4-a716-446655440010',
+          6, -- Saturday
+          NULL,
+          '10:00:00',
+          '16:00:00',
+          'available',
+          true,
+          true,
+          NULL,
+          NULL,
+          4,
+          0,
+          24,
+          'Saturday half-day schedule',
+          true,
+          false,
+          NOW(),
+          NOW()
+        ),
+        -- Mike Stylist Mobile recurring schedule
+        (
+          '550e8400-e29b-41d4-a716-446655440004',
+          '550e8400-e29b-41d4-a716-446655440011',
+          1, -- Monday
+          NULL,
+          '10:00:00',
+          '19:00:00',
+          'available',
+          true,
+          true,
+          '13:00:00',
+          '14:00:00',
+          6,
+          1,
+          12,
+          'Monday schedule with lunch break',
+          true,
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440005',
+          '550e8400-e29b-41d4-a716-446655440011',
+          2, -- Tuesday
+          NULL,
+          '10:00:00',
+          '19:00:00',
+          'available',
+          true,
+          true,
+          '13:00:00',
+          '14:00:00',
+          6,
+          0,
+          12,
+          'Tuesday schedule with lunch break',
+          true,
+          false,
+          NOW(),
+          NOW()
+        ),
+        -- Lisa Massage Therapy recurring schedule
+        (
+          '550e8400-e29b-41d4-a716-446655440006',
+          '550e8400-e29b-41d4-a716-446655440012',
+          1, -- Monday
+          NULL,
+          '08:00:00',
+          '17:00:00',
+          'available',
+          true,
+          true,
+          '12:00:00',
+          '13:00:00',
+          8,
+          1,
+          48,
+          'Monday schedule with lunch break',
+          true,
+          false,
+          NOW(),
+          NOW()
+        ),
+        (
+          '550e8400-e29b-41d4-a716-446655440007',
+          '550e8400-e29b-41d4-a716-446655440012',
+          2, -- Tuesday
+          NULL,
+          '08:00:00',
+          '17:00:00',
+          'available',
+          true,
+          true,
+          '12:00:00',
+          '13:00:00',
+          8,
+          0,
+          48,
+          'Tuesday schedule with lunch break',
+          true,
+          false,
+          NOW(),
+          NOW()
+        )
+        ON CONFLICT (id) DO NOTHING;
+      `;
+
+      await this.dataSource.query(availabilitySeedQuery);
+      this.logger.log('Availability seed data completed');
+
+      // Insert booking seed data
+      const bookingSeedQuery = `
+        INSERT INTO bookings (
+          id, client_id, professional_id, service_id, start_time, end_time, total_price_cents,
+          service_price_cents, travel_fee_cents, platform_fee_cents, discount_cents, status,
+          payment_status, booking_type, idempotency_key, location, client_notes, professional_notes,
+          is_active, is_deleted, created_at, updated_at
+        ) VALUES
+        -- Client 1 (John Doe) booking with Sarah Beauty Studio
+        (
+          '550e8400-e29b-41d4-a716-446655440001',
+          '10756772-303e-4cdb-b2b1-6232d580efb2',
+          '550e8400-e29b-41d4-a716-446655440010',
+          '550e8400-e29b-41d4-a716-446655440001',
+          '2024-01-15 10:00:00',
+          '2024-01-15 11:30:00',
+          8500,
+          7500,
+          500,
+          500,
+          0,
+          'confirmed',
+          'paid',
+          'in_person',
+          'booking-001-john-sarah-facial',
+          '{"address": "123 Main St", "city": "New York", "state": "NY", "country": "USA", "postalCode": "10001"}',
+          'Please use gentle products for sensitive skin',
+          'Client has sensitive skin, will use hypoallergenic products',
+          true,
+          false,
+          '2024-01-10 09:00:00',
+          '2024-01-10 09:00:00'
+        ),
+        -- Client 2 (Jane Smith) booking with Mike Stylist Mobile
+        (
+          '550e8400-e29b-41d4-a716-446655440002',
+          '20756772-303e-4cdb-b2b1-6232d580efb2',
+          '550e8400-e29b-41d4-a716-446655440011',
+          '550e8400-e29b-41d4-a716-446655440002',
+          '2024-01-16 14:00:00',
+          '2024-01-16 15:30:00',
+          12000,
+          11000,
+          1000,
+          1100,
+          0,
+          'pending',
+          'pending',
+          'home_visit',
+          'booking-002-jane-mike-hair',
+          '{"address": "456 Oak Ave", "city": "New York", "state": "NY", "country": "USA", "postalCode": "10002"}',
+          'I have long curly hair, need help with styling',
+          'Client has long curly hair, will bring appropriate products',
+          true,
+          false,
+          '2024-01-11 10:00:00',
+          '2024-01-11 10:00:00'
+        ),
+        -- Client 3 (Bob Johnson) booking with Lisa Massage Therapy
+        (
+          '550e8400-e29b-41d4-a716-446655440003',
+          '30756772-303e-4cdb-b2b1-6232d580efb2',
+          '550e8400-e29b-41d4-a716-446655440012',
+          '550e8400-e29b-41d4-a716-446655440003',
+          '2024-01-17 16:00:00',
+          '2024-01-17 17:00:00',
+          8800,
+          8000,
+          0,
+          800,
+          0,
+          'confirmed',
+          'paid',
+          'in_person',
+          'booking-003-bob-lisa-massage',
+          '{"address": "789 Pine St", "city": "New York", "state": "NY", "country": "USA", "postalCode": "10003"}',
+          'Focus on lower back and shoulders',
+          'Client requested focus on lower back and shoulders',
+          true,
+          false,
+          '2024-01-12 11:00:00',
+          '2024-01-12 11:00:00'
+        )
+        ON CONFLICT (id) DO NOTHING;
+      `;
+
+      await this.dataSource.query(bookingSeedQuery);
+      this.logger.log('Booking seed data completed');
     } catch (error) {
       this.logger.error('Failed to run seeds:', error);
       throw error;

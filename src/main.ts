@@ -32,6 +32,7 @@ async function bootstrap() {
     .addTag('Professionals', 'Professional profile management endpoints')
     .addTag('Services', 'Service management endpoints')
     .addTag('Availability', 'Professional availability and scheduling endpoints')
+    .addTag('Bookings', 'Booking management and scheduling endpoints')
     .addBearerAuth()
     .build();
 
